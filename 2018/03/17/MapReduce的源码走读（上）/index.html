@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="不会加血的牧师" />
+
+
+
+<meta name="description" content="MapReduce源码走读（上）1、代码准备阶段：​    1、举例一个WC程序进行举例分析MapReduce底层如何执行，是如何划分切片的。先附加代码(很简单的程序，重点不在这里，会的可以直接略过)： Map端：123456789public class WCMap extends Mapper&lt;LongWritable, Text,Text,LongWritable&gt; &amp;#123;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MapReduce执行流程分析（上）">
+<meta property="og:url" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/index.html">
+<meta property="og:site_name" content="不会加血的牧师">
+<meta property="og:description" content="MapReduce源码走读（上）1、代码准备阶段：​    1、举例一个WC程序进行举例分析MapReduce底层如何执行，是如何划分切片的。先附加代码(很简单的程序，重点不在这里，会的可以直接略过)： Map端：123456789public class WCMap extends Mapper&lt;LongWritable, Text,Text,LongWritable&gt; &amp;#123;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/waitForCompletion.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/waitFor.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/submit.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/cluster.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/ClusterAndConf.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/submitJobInternal.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/checkSpecs.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/getOutputFormatClass.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/OUTPUT_FORMAT_CLASS_ATTR.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/checkSpecs2.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/checkOutputSpecs.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/getStagingDir.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/jobPath.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/mkdir.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/getJobConfPath.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/writeSplits.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/jobSpilt.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/job.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/jobsummit.png">
+<meta property="article:published_time" content="2018-03-17T08:05:54.000Z">
+<meta property="article:modified_time" content="2020-01-17T07:50:51.045Z">
+<meta property="article:author" content="不会加血的牧师">
+<meta property="article:tag" content="大数据">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/waitForCompletion.png">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="不会加血的牧师" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>MapReduce执行流程分析（上） | 不会加血的牧师</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">不会加血的牧师</a></h1>
+        </hgroup>
+
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="/helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="#" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/" target="_blank" rel="noopener">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/" target="_blank" rel="noopener">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">专注于前端</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="/helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="#" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-MapReduce的源码走读（上）" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/" class="article-date">
+      <time datetime="2018-03-17T08:05:54.000Z" itemprop="datePublished">2018-03-17</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MapReduce执行流程分析（上）
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="MapReduce源码走读（上）"><a href="#MapReduce源码走读（上）" class="headerlink" title="MapReduce源码走读（上）"></a>MapReduce源码走读（上）</h2><h3 id="1、代码准备阶段："><a href="#1、代码准备阶段：" class="headerlink" title="1、代码准备阶段："></a>1、代码准备阶段：</h3><p>​    1、举例一个WC程序进行举例分析MapReduce底层如何执行，是如何划分切片的。先附加代码(<strong>很简单的程序，重点不在这里，会的可以直接略过</strong>)：</p>
+<h4 id="Map端："><a href="#Map端：" class="headerlink" title="Map端："></a>Map端：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WCMap</span> <span class="keyword">extends</span> <span class="title">Mapper</span>&lt;<span class="title">LongWritable</span>, <span class="title">Text</span>,<span class="title">Text</span>,<span class="title">LongWritable</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(LongWritable key, Text value, Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">        LongWritable ONE = <span class="keyword">new</span> LongWritable(<span class="number">1</span>);</span><br><span class="line">        String[] splits = value.toString().split(<span class="string">","</span>);</span><br><span class="line">        <span class="keyword">for</span> (String split : splits) &#123;</span><br><span class="line">            context.write(<span class="keyword">new</span> Text(split),ONE);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h4 id="Reduce端："><a href="#Reduce端：" class="headerlink" title="Reduce端："></a>Reduce端：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WCReduce</span> <span class="keyword">extends</span> <span class="title">Reducer</span>&lt;<span class="title">Text</span>, <span class="title">LongWritable</span>,<span class="title">Text</span>,<span class="title">LongWritable</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">reduce</span><span class="params">(Text key, Iterable&lt;LongWritable&gt; values, Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">long</span> count = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (LongWritable value : values) &#123;</span><br><span class="line">            count+=value.get();</span><br><span class="line">        &#125;</span><br><span class="line">        context.write(key,<span class="keyword">new</span> LongWritable(count));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Driver端："><a href="#Driver端：" class="headerlink" title="Driver端："></a>Driver端：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WCDriver</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        String input = <span class="string">"temp/word.txt"</span>;</span><br><span class="line">        String ouput = <span class="string">"out"</span>;</span><br><span class="line"></span><br><span class="line">        Job job = Job.getInstance(<span class="keyword">new</span> Configuration());</span><br><span class="line"></span><br><span class="line">        FileSystem.get(<span class="keyword">new</span> Configuration()).delete(<span class="keyword">new</span> Path(ouput));</span><br><span class="line">        <span class="comment">//设置主类</span></span><br><span class="line">        job.setJarByClass(WCDriver<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置map</span></span><br><span class="line">        job.setMapperClass(WCMap<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setMapOutputKeyClass(Text<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setMapOutputValueClass(LongWritable<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置reduce</span></span><br><span class="line">        job.setReducerClass(WCReduce<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setOutputKeyClass(Text<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setOutputValueClass(LongWritable<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置输入路径</span></span><br><span class="line">        FileInputFormat.setInputPaths(job,<span class="keyword">new</span> Path(input));</span><br><span class="line">        FileOutputFormat.setOutputPath(job,<span class="keyword">new</span> Path(ouput));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> result = job.waitForCompletion(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        System.exit(result?<span class="number">0</span>:<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    其实程序的主入口还是：<strong>boolean result = job.waitForCompletion(true);</strong>这一句话，其他都是一些配置，我们用IDEA的Debug模式跟着程序去底层看一下是如何执行的：</p>
+<h3 id="2、跟进MapReduce源码分析："><a href="#2、跟进MapReduce源码分析：" class="headerlink" title="2、跟进MapReduce源码分析："></a>2、跟进MapReduce源码分析：</h3><p>​    </p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/waitForCompletion.png" alt="waitForCompletion"></p>
+<p>​        1、还是首先从从 <strong>job.waitForCompletion(true)</strong>进入程序</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/waitFor.png" alt="waitFor"></p>
+<p>​    2、进来之后看第一眼，其实最重要的代码就在哪里放着了，就是submit方法。我们继续跟进submit方法</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/submit.png" alt="submit"></p>
+<p>​    3、<strong>ensureState(JobState.DEFINE)</strong>;这句话就是确认代码的状态，不用管。setUseNewAPI();这个是设置使用最新的API，<strong>connect();</strong>这句代码是重点，我们要跟着这一行进去。</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/cluster.png" alt="cluster"></p>
+<p>​    4、这个地方其实就是设置你提交作业的一个代理，确定你作业是提交到本地还是提交到集群里面。所有的配置全都在<strong>getConfiguration()</strong>里，一开始进来的cluster是个空的，然后通过 <strong>new Cluster(）</strong>创建出来，我们下一张图继续分析。 </p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/ClusterAndConf.png" alt="ClusterAndConf"></p>
+<p>5、这个时候我们仔细看上面的图cluster已经有值了，显示Local本地就跟我上面说的一样你是本地运行还是集群运行。我们在看conf这一项，仔细看你就会发现，程序先加载的defaul默认的配置文件，然后在加载自己设置的配置文件去覆盖默认的配置文件！！！第1290行，这时我们要获取一个submitter，然后通过submitter提交作业。在这个时候我们才拿到了一个提交的代理对象，然后<strong>submitJobInternal</strong>就开始进行提交了</p>
+<p>​    <img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/submitJobInternal.png" alt="submitJobInternal"></p>
+<p>​    6、然后我们进入<strong>submitJobInternal</strong>这个方法里，139行<strong>checkSpecs(job);</strong>这个地方检察你们输入输出，如果你在Driver端不设置输出文件路径，程序就不能继续走下去，就会有报错。我们进去看一眼是不是真的在这个地方去检查。</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/checkSpecs.png" alt="checkSpecs"></p>
+<p>​    7、程序259行，就是拿到一个配置文件，我们继续往下看。第263行，这个地方有一个output。然后我们程序肯定是要写出去东西的，我们在前面已经设置输出<strong>FileOutputFormat.setOutputPath(job,new Path(ouput));</strong>这里我们使用的类型是<strong>FileOutputFormat</strong>。程序在底层使用了泛型，原因是因为<strong>FileOutputFormat</strong>下面是有很多子类型，底层的代码不知道你前面会用什么类型，然后他通过<strong>job.getOutputFormatClass()</strong>来得到你前面使用的类型。我们继续往下追代码。</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/getOutputFormatClass.png" alt="getOutputFormatClass"></p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/OUTPUT_FORMAT_CLASS_ATTR.png" alt="OUTPUT_FORMAT_CLASS_ATTR"></p>
+<p>​    8、他底层就是有这么一个参数：<strong>mapreduce.job.outputformat.class</strong> 这个地方就是前面设置的<strong>FileOutputFormat</strong>类型，然后在通过反射创建出来。<img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/checkSpecs2.png" alt="checkSpecs2"></p>
+<p>​    9、我们再次回到<strong>checkSpecs</strong>这个方法，进入<strong>output.checkOutputSpecs(job)</strong>进入这个方法里面，这里就是检查输出路径是否存在。我们进去看一眼！</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/checkOutputSpecs.png" alt="checkOutputSpecs"></p>
+<p>​    10、我们进入<strong>checkOutputSpecs</strong>这个方法里面，第136行，获取输出路径。第137行，就是判断是否设置输出路径。第145行，这个地方就是检查输出路径是否存在了。有兴趣的小伙伴可以试一试，不设置输出路径，或者输出路径已经存在看看是不是报上面的错误。哈哈哈。。我就不在截图试了，肯定是这俩错误啦~   一会呢我们继续回到<strong>JobSubmitter.submitJobInternal</strong>方法继续往下追源码。</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/getStagingDir.png" alt="getStagingDir"></p>
+<p>​    11、我们回到**JobSubmitter.submitJobInte是把作业的配置信息添加到分布式缓存中，放到后面在说。第144行这个方法的目的是为了获取存放一个job的路径，在本地是可以找到的。</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/jobPath.png" alt="jobPath"></p>
+<p>​    12、程序现在到144，这个job目录还没有创建，我吧这个目录下所有的文件都清空了。我们继续往下走。</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/mkdir.png" alt="mkdir"></p>
+<p>​    13、我们走到190行，此时job的目录就已经创建了。这里存放job里的信息。只不过现在这个目录是一个空的。里面什么都没有，后面会吧一些信息都写进去。    </p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/getJobConfPath.png" alt="getJobConfPath"></p>
+<p>​    14、第190行，<strong>copyAndConfigureFiles</strong>这个方法是拷贝跟配置你的文件信息，196行，<strong>writeSplits</strong>这里是你的切片信息，你有多少切片。然后把你的切片个数设置进去。我们这里只有一个文件，maps就是1。<strong>writeSplits</strong>这个方法后面单独拿出来详细说。当我们执行完<strong>copyAndConfigureFiles</strong>继续创建目录</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/writeSplits.png" alt="writeSplits"></p>
+<p>​    15、我们继续进入这个目录，现在这个目录是空的，等我们执行完writeSplits。就会在目录下创建出来split的一些文件信息。我们现在只有一个文件，maps现在就是1.</p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/jobSpilt.png" alt="writeSplits"></p>
+<p>​    16、我们执行到198行，这个时候split的一些信息都创建出来。现在还没有创建完，后面还会继续创建配置信息。<strong>writeSplits</strong>这个方法是重点，我们放到后面单独讨论。我们继续往下走<img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/job.png" alt="job"></p>
+<p>​    17、执行<strong>writeConf</strong>就创建了job.xml里面有我们所有相关配置信息，有兴趣的小伙伴可以点进去看一下。 目前所有准备工作都已经完事了。核心的代码都基本上过了，还遗留了<strong>writeSplits</strong>。这个下一篇文章继续介绍。    </p>
+<p><img src="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/jobsummit.png" alt="jobsummit"></p>
+<p>​    18、<strong>submitJob</strong>这里就开始提交作业了，核心部分基本完了。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
+        <p><span>发布时间:</span>2018-03-17, 16:05:54</p>
+        <p><span>最后更新:</span>2020-01-17, 15:50:51</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/" title="MapReduce执行流程分析（上）">http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">
+                    MapReduce执行流程分析（下）
+                </a>
+            </div>
+        
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#MapReduce源码走读（上）"><span class="toc-number">1.</span> <span class="toc-text">MapReduce源码走读（上）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1、代码准备阶段："><span class="toc-number">1.1.</span> <span class="toc-text">1、代码准备阶段：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Map端："><span class="toc-number">1.1.1.</span> <span class="toc-text">Map端：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Reduce端："><span class="toc-number">1.1.2.</span> <span class="toc-text">Reduce端：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Driver端："><span class="toc-number">1.1.3.</span> <span class="toc-text">Driver端：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2、跟进MapReduce源码分析："><span class="toc-number">1.2.</span> <span class="toc-text">2、跟进MapReduce源码分析：</span></a></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"MapReduce执行流程分析（上）　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/" title="上一篇: MapReduce执行流程分析（下）">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2020 不会加血的牧师
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 4;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

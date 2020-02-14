@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="不会加血的牧师" />
+
+
+
+<meta name="description" content="Reduce Join​    Reduce  Join就是俩张表的join操作在reduce端完成，在map阶段，把key输出到reduce端，并且在values中有一个标志位，用来区别是表1的数据还是表2的数据。reduce阶段，以连接的字段当做key分组已经完成，我们需要把每一个分组中来自不同的文件数据分开，最后聚合就可以。我们上代码，我们有俩张表，一张dept，一张emp表，数据如下：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MapJoin跟ReduceJoin">
+<meta property="og:url" content="http://yoursite.com/2018/04/02/MapJoin%E8%B7%9FReduceJoin/index.html">
+<meta property="og:site_name" content="不会加血的牧师">
+<meta property="og:description" content="Reduce Join​    Reduce  Join就是俩张表的join操作在reduce端完成，在map阶段，把key输出到reduce端，并且在values中有一个标志位，用来区别是表1的数据还是表2的数据。reduce阶段，以连接的字段当做key分组已经完成，我们需要把每一个分组中来自不同的文件数据分开，最后聚合就可以。我们上代码，我们有俩张表，一张dept，一张emp表，数据如下：">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-04-02T06:00:06.000Z">
+<meta property="article:modified_time" content="2020-02-05T08:10:51.360Z">
+<meta property="article:author" content="不会加血的牧师">
+<meta property="article:tag" content="大数据">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="不会加血的牧师" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>MapJoin跟ReduceJoin | 不会加血的牧师</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">不会加血的牧师</a></h1>
+        </hgroup>
+
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="/helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" href="#" title="GitHub"></a>
+                            
+                                <a class="fa RSS" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/" target="_blank" rel="noopener">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/" target="_blank" rel="noopener">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">专注于前端</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="/helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="#" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-MapJoin跟ReduceJoin" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/" class="article-date">
+      <time datetime="2018-04-02T06:00:06.000Z" itemprop="datePublished">2018-04-02</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MapJoin跟ReduceJoin
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="Reduce-Join"><a href="#Reduce-Join" class="headerlink" title="Reduce Join"></a>Reduce Join</h2><p>​    Reduce  Join就是俩张表的join操作在reduce端完成，在map阶段，把key输出到reduce端，并且在values中有一个标志位，用来区别是表1的数据还是表2的数据。reduce阶段，以连接的字段当做key分组已经完成，我们需要把每一个分组中来自不同的文件数据分开，最后聚合就可以。我们上代码，我们有俩张表，一张dept，一张emp表，数据如下：</p>
+<a id="more"></a>
+
+<h4 id="1、表数据："><a href="#1、表数据：" class="headerlink" title="1、表数据："></a>1、表数据：</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">emp表：</span><br><span class="line">7369	SMITH	CLERK	7902	1980-12-17	800.00		20</span><br><span class="line">7499	ALLEN	SALESMAN	7698	1981-2-20	1600.00	300.00	30</span><br><span class="line">7521	WARD	SALESMAN	7698	1981-2-22	1250.00	500.00	30</span><br><span class="line">7566	JONES	MANAGER	7839	1981-4-2	2975.00		20</span><br><span class="line">7654	MARTIN	SALESMAN	7698	1981-9-28	1250.00	1400.00	30</span><br><span class="line">7698	BLAKE	MANAGER	7839	1981-5-1	2850.00		30</span><br><span class="line">7782	CLARK	MANAGER	7839	1981-6-9	2450.00		10</span><br><span class="line">7788	SCOTT	ANALYST	7566	1987-4-19	3000.00		20</span><br><span class="line">7839	KING	PRESIDENT		1981-11-17	5000.00		10</span><br><span class="line">7844	TURNER	SALESMAN	7698	1981-9-8	1500.00	0.00	30</span><br><span class="line">7876	ADAMS	CLERK	7788	1987-5-23	1100.00		20</span><br><span class="line">7900	JAMES	CLERK	7698	1981-12-3	950.00		30</span><br><span class="line">7902	FORD	ANALYST	7566	1981-12-3	3000.00		20</span><br><span class="line">7934	MILLER	CLERK	7782	1982-1-23	1300.00		10</span><br><span class="line">8888	HIVE	PROGRAM	7839	1988-1-23	10300.00</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">dept表：</span><br><span class="line">10	ACCOUNTING	NEW YORK</span><br><span class="line">20	RESEARCH	DALLAS</span><br><span class="line">30	SALES	CHICAGO</span><br><span class="line">40	OPERATIONS	BOSTON</span><br></pre></td></tr></table></figure>
+
+<h4 id="2、代码部分："><a href="#2、代码部分：" class="headerlink" title="2、代码部分："></a>2、代码部分：</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line">package com.pactera.bigdata.join;</span><br><span class="line"></span><br><span class="line">import com.pactera.bigdata.utlis.FileUtils;</span><br><span class="line">import org.apache.hadoop.conf.Configuration;</span><br><span class="line">import org.apache.hadoop.fs.Path;</span><br><span class="line">import org.apache.hadoop.io.IntWritable;</span><br><span class="line">import org.apache.hadoop.io.LongWritable;</span><br><span class="line">import org.apache.hadoop.io.NullWritable;</span><br><span class="line">import org.apache.hadoop.io.Text;</span><br><span class="line">import org.apache.hadoop.mapreduce.Job;</span><br><span class="line">import org.apache.hadoop.mapreduce.Mapper;</span><br><span class="line">import org.apache.hadoop.mapreduce.Reducer;</span><br><span class="line">import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line">import org.apache.hadoop.mapreduce.lib.input.FileSplit;</span><br><span class="line">import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;</span><br><span class="line"></span><br><span class="line">import java.io.IOException;</span><br><span class="line">import java.util.ArrayList;</span><br><span class="line"></span><br><span class="line">public class MyReduceJoin  &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        String input &#x3D; &quot;data&#x2F;join&quot;;</span><br><span class="line">        String output &#x3D; &quot;out&quot;;</span><br><span class="line"></span><br><span class="line">        Configuration configuration &#x3D; new Configuration();</span><br><span class="line">        Job job &#x3D; Job.getInstance(configuration);</span><br><span class="line"></span><br><span class="line">        FileUtils.deleteOutput(configuration, output);</span><br><span class="line">        job.setJarByClass(MyReduceJoin.class);</span><br><span class="line"></span><br><span class="line">        job.setMapperClass(MyMapper.class);</span><br><span class="line">        job.setReducerClass(MyReducer.class);</span><br><span class="line"></span><br><span class="line">        job.setMapOutputKeyClass(IntWritable.class);</span><br><span class="line">        job.setMapOutputValueClass(Info.class);</span><br><span class="line"></span><br><span class="line">        job.setOutputKeyClass(Info.class);</span><br><span class="line">        job.setOutputValueClass(NullWritable.class);</span><br><span class="line"></span><br><span class="line">        FileInputFormat.setInputPaths(job, new Path(input));</span><br><span class="line">        FileOutputFormat.setOutputPath(job, new Path(output));</span><br><span class="line"></span><br><span class="line">        boolean result &#x3D; job.waitForCompletion(true);</span><br><span class="line">        System.exit(result ? 0 : 1);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    public static class MyMapper extends Mapper&lt;LongWritable, Text, IntWritable,Info&gt; &#123;</span><br><span class="line">        String name;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        protected void setup(Context context) throws IOException, InterruptedException &#123;</span><br><span class="line">            FileSplit inputSplit &#x3D; (FileSplit) context.getInputSplit();</span><br><span class="line">            name &#x3D; inputSplit.getPath().getName();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException &#123;</span><br><span class="line"></span><br><span class="line">            String[] split &#x3D; value.toString().split(&quot;\t&quot;);</span><br><span class="line">            if (name.contains(&quot;emp&quot;)) &#123;</span><br><span class="line">                if (split.length &#x3D;&#x3D; 8) &#123;</span><br><span class="line">                    int empno &#x3D; Integer.parseInt(split[0].trim());</span><br><span class="line">                    String empname &#x3D; split[1];</span><br><span class="line">                    int deptno &#x3D; Integer.parseInt(split[7].trim());</span><br><span class="line">                    Info info &#x3D; new Info(empno, empname, deptno, &quot;&quot;, 1);</span><br><span class="line">                    context.write(new IntWritable(deptno), info);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                int deptno &#x3D; Integer.parseInt(split[0].trim());</span><br><span class="line">                String deptname &#x3D; split[1];</span><br><span class="line">                context.write(new IntWritable(deptno), new Info(0, &quot;&quot;, deptno, deptname, 2));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public static class MyReducer extends Reducer&lt;IntWritable,Info,Info,NullWritable&gt;&#123;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        protected void reduce(IntWritable key, Iterable&lt;Info&gt; values, Context context) throws IOException, InterruptedException &#123;</span><br><span class="line"></span><br><span class="line">            ArrayList&lt;Info&gt; infos &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">            String dName &#x3D; &quot;&quot;;</span><br><span class="line">            for (Info value : values) &#123;</span><br><span class="line">                if (value.getFlag() &#x3D;&#x3D; 1) &#123;</span><br><span class="line">                    &#x2F;&#x2F;1 是emp表</span><br><span class="line">                    Info info &#x3D; new Info();</span><br><span class="line">                    info.setDeptno(value.getDeptno());</span><br><span class="line">                    info.setEmpno(value.getEmpno());</span><br><span class="line">                    info.setEname(value.getEname());</span><br><span class="line">                    infos.add(info);</span><br><span class="line">                &#125; else if (value.getFlag() &#x3D;&#x3D; 2) &#123;</span><br><span class="line">                    &#x2F;&#x2F;2 是dept</span><br><span class="line">                    dName &#x3D; value.getDname();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            for (Info info : infos) &#123;</span><br><span class="line">                    info.setDname(dName);</span><br><span class="line">                    context.write(info,NullWritable.get());</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>JavaBean文件</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.pactera.bigdata.join;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Writable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.WritableComparable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.DataInput;</span><br><span class="line"><span class="keyword">import</span> java.io.DataOutput;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Info</span> <span class="keyword">implements</span> <span class="title">WritableComparable</span>&lt;<span class="title">Info</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> empno;</span><br><span class="line">    <span class="keyword">private</span> String ename;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> deptno;</span><br><span class="line">    <span class="keyword">private</span> String dname;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> flag; <span class="comment">//区分数据从哪里来的标志位</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Info</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Info</span><span class="params">(<span class="keyword">int</span> empno, String ename, <span class="keyword">int</span> deptno, String dname)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.empno = empno;</span><br><span class="line">        <span class="keyword">this</span>.ename = ename;</span><br><span class="line">        <span class="keyword">this</span>.deptno = deptno;</span><br><span class="line">        <span class="keyword">this</span>.dname = dname;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Info</span><span class="params">(<span class="keyword">int</span> empno, String ename, <span class="keyword">int</span> deptno, String dname, <span class="keyword">int</span> flag)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(empno, ename,deptno,dname);</span><br><span class="line">        <span class="keyword">this</span>.flag = flag;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">                empno + <span class="string">"\t"</span> + ename + <span class="string">"\t"</span> + deptno + <span class="string">"\t"</span> + dname ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(DataOutput out)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        out.writeInt(empno);</span><br><span class="line">        out.writeUTF(ename);</span><br><span class="line">        out.writeInt(deptno);</span><br><span class="line">        out.writeUTF(dname);</span><br><span class="line">        out.writeInt(flag);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">readFields</span><span class="params">(DataInput in)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.empno = in.readInt();</span><br><span class="line">        <span class="keyword">this</span>.ename = in.readUTF();</span><br><span class="line">        <span class="keyword">this</span>.deptno = in.readInt();</span><br><span class="line">        <span class="keyword">this</span>.dname = in.readUTF();</span><br><span class="line">        <span class="keyword">this</span>.flag = in.readInt();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getEmpno</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> empno;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setEmpno</span><span class="params">(<span class="keyword">int</span> empno)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.empno = empno;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getEname</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ename;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setEname</span><span class="params">(String ename)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.ename = ename;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getDeptno</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> deptno;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDeptno</span><span class="params">(<span class="keyword">int</span> deptno)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.deptno = deptno;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getDname</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> dname;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDname</span><span class="params">(String dname)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.dname = dname;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getFlag</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> flag;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFlag</span><span class="params">(<span class="keyword">int</span> flag)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.flag = flag;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(Info o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.deptno &lt; o.getDeptno() ? -<span class="number">1</span>:<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Map-Join"><a href="#Map-Join" class="headerlink" title="Map Join"></a>Map Join</h2><p>​    Map Join 在Map端进行聚合操作，当俩个表进行join操作的时候。MapJoin优先把小表先加进内存当中，然后大表作为map端的输入，对内存中的小表进行关联操作。join的操作过程发生在Map端，MapJoin在进行操作的过程中并不会产生reduce操作。代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.pactera.bigdata.join;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.pactera.bigdata.utlis.FileUtils;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.lang.StringUtils;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.conf.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.fs.Path;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.LongWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.NullWritable;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.io.Text;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Job;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.Mapper;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.input.FileInputFormat;</span><br><span class="line"><span class="keyword">import</span> org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.net.URI;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyMapperJoin</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        String input = <span class="string">"data/join/emp.txt"</span>;</span><br><span class="line">        String output = <span class="string">"out"</span>;</span><br><span class="line"></span><br><span class="line">        Configuration configuration = <span class="keyword">new</span> Configuration();</span><br><span class="line">        Job job = Job.getInstance(configuration);</span><br><span class="line"></span><br><span class="line">        FileUtils.deleteOutput(configuration, output);</span><br><span class="line">        job.setJarByClass(MyReduceJoin<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">        job.setMapperClass(MapJoin<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setNumReduceTasks(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//加载到内存中</span></span><br><span class="line">        job.addCacheFile(<span class="keyword">new</span> URI(<span class="string">"ruozedata/join/dept.txt"</span>));</span><br><span class="line"></span><br><span class="line">        job.setMapOutputKeyClass(Info<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        job.setMapOutputValueClass(NullWritable<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        FileInputFormat.setInputPaths(job, <span class="keyword">new</span> Path(input));</span><br><span class="line">        FileOutputFormat.setOutputPath(job, <span class="keyword">new</span> Path(output));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> result = job.waitForCompletion(<span class="keyword">true</span>);</span><br><span class="line">        System.exit(result ? <span class="number">0</span> : <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MapJoin</span> <span class="keyword">extends</span> <span class="title">Mapper</span> &lt;<span class="title">LongWritable</span>, <span class="title">Text</span>, <span class="title">Info</span>,<span class="title">NullWritable</span>&gt;</span>&#123;</span><br><span class="line"></span><br><span class="line">         Map&lt;Integer,String&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">setup</span><span class="params">(Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line">            String path = context.getCacheFiles()[<span class="number">0</span>].getPath();</span><br><span class="line">            BufferedReader buffered = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(path)));</span><br><span class="line"></span><br><span class="line">            String line;</span><br><span class="line">            <span class="keyword">while</span> (StringUtils.isNotEmpty(line = buffered.readLine()))&#123;</span><br><span class="line"></span><br><span class="line">                String[] split = line.split(<span class="string">"\t"</span>);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">int</span> deptno = Integer.parseInt(split[<span class="number">0</span>].trim());</span><br><span class="line">                String deptname = split[<span class="number">1</span>];</span><br><span class="line">                map.put(deptno,deptname);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">map</span><span class="params">(LongWritable key, Text value, Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>&#123;</span><br><span class="line"></span><br><span class="line">            String[] split = value.toString().split(<span class="string">"\t"</span>);</span><br><span class="line">            <span class="keyword">if</span>(split.length == <span class="number">8</span>)&#123;</span><br><span class="line">                <span class="keyword">int</span> empno = Integer.parseInt(split[<span class="number">0</span>]);</span><br><span class="line">                String empname = split[<span class="number">1</span>];</span><br><span class="line">                <span class="keyword">int</span> deptno = Integer.parseInt(split[<span class="number">7</span>]);</span><br><span class="line"></span><br><span class="line">                Info info = <span class="keyword">new</span> Info(empno, empname, deptno, map.get(deptno));</span><br><span class="line"></span><br><span class="line">                context.write(info,NullWritable.get());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
+        <p><span>发布时间:</span>2018-04-02, 14:00:06</p>
+        <p><span>最后更新:</span>2020-02-05, 16:10:51</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/" title="MapJoin跟ReduceJoin">http://yoursite.com/2018/04/02/MapJoin%E8%B7%9FReduceJoin/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2018/04/02/MapJoin%E8%B7%9FReduceJoin/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">
+                    Hive中的UDF使用
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">
+                    MapReduce执行流程分析（下）
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Reduce-Join"><span class="toc-number">1.</span> <span class="toc-text">Reduce Join</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1、表数据："><span class="toc-number">1.0.1.</span> <span class="toc-text">1、表数据：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2、代码部分："><span class="toc-number">1.0.2.</span> <span class="toc-text">2、代码部分：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Map-Join"><span class="toc-number">2.</span> <span class="toc-text">Map Join</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"MapJoin跟ReduceJoin　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/" title="上一篇: Hive中的UDF使用">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/" title="下一篇: MapReduce执行流程分析（下）">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2020 不会加血的牧师
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 4;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
