@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplit.png">
 <meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/Block.png">
 <meta property="article:published_time" content="2018-03-25T14:05:54.000Z">
-<meta property="article:modified_time" content="2020-02-14T12:48:11.085Z">
+<meta property="article:modified_time" content="2020-02-14T12:51:25.333Z">
 <meta property="article:author" content="不会加血的牧师">
 <meta property="article:tag" content="大数据">
 <meta name="twitter:card" content="summary">
@@ -331,7 +331,7 @@
 <p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getMaxSplitSize.png" alt="getMaxSplitSize"></p>
 <p>​    7、进入<strong>getSplits</strong>方法，最终进入的还是<strong>FileInputFormate</strong>，我们前面的类型返回不是<strong>TextInputFormat</strong>吗，<strong>TextInputFormat</strong>里面只有俩个方法，最终调用的还是父类里的方法，我们看382行是求一个最小值<strong>getFormatMinSplitSize()</strong>返回的是1，有兴趣的自己点进去看一下。<strong>getMinSplitSize(job)</strong>这个方法是底层是去找<strong>*<u>SPLIT_MINSIZE</u>*</strong>这个参数找不到返回<strong>1L</strong>，这里最小值返回的是<strong>1</strong>.<strong>getMaxSplitSize</strong>这个方法去找<strong>*<u>SPLIT_MAXSIZE</u>*</strong>这个值，如果没有返回<u><strong>Long.MAX_VALUE</strong></u><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplitSize.png" alt="computeSplitSize"></p>
 <p>​    8、然后我们继续往下走到<strong>388</strong>行，这里先获取到了文件的大小，然后判断文件是不是可以切分的文件，又获取了<strong>bolck</strong>的大小，应该<strong>128M</strong>这里因为是本地运行所以是<strong>32M</strong>,服务器上就是<strong>128M</strong>。然后我们进入<strong>computeSplitSize</strong>这个方法里面</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplit.png" alt="computeSplitSize (2)"></p>
+<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplit.png" alt="computeSplit"></p>
 <p>​    9、这里<strong>minSize</strong>是<strong>1</strong>，后面<strong>maxSize</strong>是<strong>Long</strong>的最大值，<strong>blockSize</strong>是<strong>32M</strong>因为是本地运行，最小值那就是<strong>32M</strong>,然后求最大值就是<strong>32M</strong>了</p>
 <p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/Block.png" alt="Block"></p>
 <p> 10、我么返回回来，这部分代码就是精华了，<strong>((double) bytesRemaining)/splitSize &gt; SPLIT_SLOP</strong>中的 <strong>*<u>SPLIT_SLOP</u>*</strong> 这个参数的值是<strong>1.1</strong>,预留了百分之<strong>10</strong>阈值。比如一个文件是<strong>130M</strong>个<strong>Block</strong>是<strong>2</strong>个，这里被<strong>MapReduce</strong>处理了这个地方的切片就是一个了，留了百分之<strong>10</strong>的阈值。如果说没有这个<strong>1.1</strong>参数一个块大小是<strong>129M</strong>，这个时候会有俩个<strong>Mapper</strong>去处理，一个是处理<strong>128M</strong>，一个处理<strong>1M</strong>。这样的无形之中又造成了浪费资源。留出百分之<strong>10</strong>的阈值，这样<strong>129M</strong>的数据还是会被一个<strong>Mapper</strong>去处理的。代码<strong>405</strong>行到<strong>410</strong>行，这里就是循环进行切片，<strong>412</strong>行到<strong>417</strong>行，就是处理剩下最后一个不到<strong>128M</strong>的块大小。到这里<strong>writeSplits</strong>最主要的部分就结束，阅读源码的时候还是要<strong>Debug</strong>跟进一起去看理解才能更深刻，如果不<strong>Debug</strong>的话看源码也是白看，因为你根本不知道程序走的哪里。</p>
@@ -346,7 +346,7 @@
         <p><span>本文标题:</span><a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
         <p><span>发布时间:</span>2018-03-25, 22:05:54</p>
-        <p><span>最后更新:</span>2020-02-14, 20:48:11</p>
+        <p><span>最后更新:</span>2020-02-14, 20:51:25</p>
         <p>
             <span>原始链接:</span><a class="post-url" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/" title="MapReduce执行流程分析（下）">http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/</a>
             <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
