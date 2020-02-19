@@ -778,6 +778,12 @@ a {
   -moz-background-size: 80%;
   background-size: 80%;
 }
+#header .header-nav .social .GitHub {
+  background: url("/img/GitHub.png") center no-repeat #f00;
+  -webkit-background-size: 105%;
+  -moz-background-size: 105%;
+  background-size: 105%;
+}
 #header .header-nav .social .知乎 {
   background: url("/img/知乎.png") center no-repeat #0078d8;
   -webkit-background-size: 90%;
@@ -879,13 +885,6 @@ a {
   -webkit-background-size: 103%;
   -moz-background-size: 103%;
   background-size: 103%;
-}
-#header .header-nav .social .GitHub {
-  background: url("//cdn.bootcss.com/logos/0.2.0/github-octocat.svg") no-repeat #fff;
-  -webkit-background-size: 90%;
-  -moz-background-size: 90%;
-  background-size: 90%;
-  background-position: 50% 100%;
 }
 #header .header-nav .social .CodePen {
   background: url("//cdn.bootcss.com/logos/0.2.0/codepen-icon.svg") no-repeat #000;

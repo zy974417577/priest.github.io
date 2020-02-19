@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="不会加血的牧师" />
+
+
+
+<meta name="description" content="Flume的定义： Flume是一个分布式的、高可靠的、高可用的将大批量的不同数据源的日志数据收集、聚合、移动到数据中心（HDFS）进行存储的系统。即是日志采集和汇总的工具  Logstash、FileBeat是ES栈的日志数据抽取工具，他们和Flume很类似，前者是轻量级、后者是重量级，若项目组使用的是ES栈技术，那完全可以使用Logstash取代Flume。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大数据学习-Flume的基础使用">
+<meta property="og:url" content="http://yoursite.com/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="不会加血的牧师">
+<meta property="og:description" content="Flume的定义： Flume是一个分布式的、高可靠的、高可用的将大批量的不同数据源的日志数据收集、聚合、移动到数据中心（HDFS）进行存储的系统。即是日志采集和汇总的工具  Logstash、FileBeat是ES栈的日志数据抽取工具，他们和Flume很类似，前者是轻量级、后者是重量级，若项目组使用的是ES栈技术，那完全可以使用Logstash取代Flume。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/E:%5Cruozedata%5Chexo%5CzhaoyangBolg%5Csource_posts%5C%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%5CFlume%E7%89%88%E6%9C%AC.png">
+<meta property="article:published_time" content="2020-02-17T02:17:18.000Z">
+<meta property="article:modified_time" content="2020-02-19T02:30:29.069Z">
+<meta property="article:author" content="不会加血的牧师">
+<meta property="article:tag" content="大数据">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/E:%5Cruozedata%5Chexo%5CzhaoyangBolg%5Csource_posts%5C%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%5CFlume%E7%89%88%E6%9C%AC.png">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="不会加血的牧师" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>大数据学习-Flume的基础使用 | 不会加血的牧师</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">不会加血的牧师</a></h1>
+        </hgroup>
+
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" target="_blank" rel="noopener" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/zy974417577" target="_blank" rel="noopener" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" href="https://space.bilibili.com/7907653" target="_blank" rel="noopener" title="bilibili"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/" target="_blank" rel="noopener">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/" target="_blank" rel="noopener">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">专注于前端</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" target="_blank" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/zy974417577" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" target="_blank" href="https://space.bilibili.com/7907653" title="bilibili"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-大数据学习-Flume的基础使用" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/" class="article-date">
+      <time datetime="2020-02-17T02:17:18.000Z" itemprop="datePublished">2020-02-17</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      大数据学习-Flume的基础使用
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="Flume的定义："><a href="#Flume的定义：" class="headerlink" title="Flume的定义："></a>Flume的定义：</h2><ul>
+<li><p>Flume是一个分布式的、高可靠的、高可用的将大批量的不同数据源的日志数据收集、聚合、移动到数据中心（HDFS）进行存储的系统。即是日志采集和汇总的工具</p>
+</li>
+<li><p>Logstash、FileBeat是ES栈的日志数据抽取工具，他们和Flume很类似，前者是轻量级、后者是重量级，若项目组使用的是ES栈技术，那完全可以使用Logstash取代Flume。</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="Flume的版本："><a href="#Flume的版本：" class="headerlink" title="Flume的版本："></a>Flume的版本：</h2><p>​    Flume的版本分为了ng、og俩个版本，ng是新版本，og就是旧版本。在1.0之后全都是ng版本，0.9之前都是og的</p>
+<p><img src="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/E:%5Cruozedata%5Chexo%5CzhaoyangBolg%5Csource_posts%5C%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%5CFlume%E7%89%88%E6%9C%AC.png" alt="Flume版本"></p>
+<ul>
+<li>NG: 1.x的版本   (N=NEW)</li>
+<li>OG：0.9.x的版本(O=OLD）</li>
+</ul>
+<h2 id="Flume的组成："><a href="#Flume的组成：" class="headerlink" title="Flume的组成："></a>Flume的组成：</h2><h3 id="source-源端数据采集-："><a href="#source-源端数据采集-：" class="headerlink" title="source(源端数据采集)："></a>source(源端数据采集)：</h3><p>​        从哪里收集数据，Flume提供了各种各样的Source、同时还提供了自定义的Source。举例几个比较常用的source。其余的可以查文档，太多记不住。</p>
+<h4 id="Avro-Source："><a href="#Avro-Source：" class="headerlink" title="Avro Source："></a>Avro Source：</h4><p>​            监听Avro端口并从外部Avro客户端流接收事件。</p>
+<h4 id="Exec-Source："><a href="#Exec-Source：" class="headerlink" title="Exec Source："></a>Exec Source：</h4><p>​            执行一个命令行，<code>cat [named pipe]</code> or <code>tail -F [file]</code></p>
+<h4 id="Taildir-Source"><a href="#Taildir-Source" class="headerlink" title="Taildir Source:"></a>Taildir Source:</h4><p>​        监听一个目录，一旦检测到添加到每个文件中的新数据，就实时地进行监控。如果正在写入新数据，则此源将在写入完成之前重试读取它们。</p>
+<h4 id="Kafka-Source："><a href="#Kafka-Source：" class="headerlink" title="Kafka Source："></a>Kafka Source：</h4><p>​        从Kafka主题中读取消息。</p>
+<h3 id="Channel-临时存储聚合数据-："><a href="#Channel-临时存储聚合数据-：" class="headerlink" title="Channel(临时存储聚合数据)："></a>Channel(临时存储聚合数据)：</h3><p>​    主要用于临时存储的地方，相当于一个水池，主要有三种memory channe、File channel、kafka channe。最常用的memory channel和File channel，生产中channel的数据一定是要监控的，防止sink挂了，撑爆channel。</p>
+<h4 id="Memory-channel"><a href="#Memory-channel" class="headerlink" title="Memory channel"></a>Memory channel</h4><p>​        内存当做临时存储</p>
+<h4 id="File-channel"><a href="#File-channel" class="headerlink" title="File channel"></a>File channel</h4><p>​        文件当做临时存储</p>
+<h4 id="Kafka-channe"><a href="#Kafka-channe" class="headerlink" title="Kafka channe"></a>Kafka channe</h4><p>​        Kafka做临时存储</p>
+<h3 id="Sink（移动数据到目标端）"><a href="#Sink（移动数据到目标端）" class="headerlink" title="Sink（移动数据到目标端）"></a>Sink（移动数据到目标端）</h3><p>​    数据最后发送到哪里，举例几个常用的Sink。</p>
+<h4 id="HDFS-Sink"><a href="#HDFS-Sink" class="headerlink" title="HDFS Sink"></a>HDFS Sink</h4><p>​        数据最后发送Hadoop上去。</p>
+<h4 id="Kafka-Sink"><a href="#Kafka-Sink" class="headerlink" title="Kafka Sink"></a>Kafka Sink</h4><p>​        数据发送到Kafka上去。</p>
+<h4 id="Avro-Sink"><a href="#Avro-Sink" class="headerlink" title="Avro Sink"></a>Avro Sink</h4><p>​        配合Avro Source一起使用。</p>
+<h2 id="Flume安装："><a href="#Flume安装：" class="headerlink" title="Flume安装："></a>Flume安装：</h2><p>​    Flume安装包地址<a href="http://archive.cloudera.com/cdh5/cdh/5/，我们使用CDH版本，我使用的是flume-ng-1.6.0-cdh5.16.2.tar.gz这个版本，解压，安装，配置环境变量，配置env文件添加Java环境。" target="_blank" rel="noopener">http://archive.cloudera.com/cdh5/cdh/5/，我们使用CDH版本，我使用的是flume-ng-1.6.0-cdh5.16.2.tar.gz这个版本，解压，安装，配置环境变量，配置env文件添加Java环境。</a></p>
+<h4 id="解压："><a href="#解压：" class="headerlink" title="解压："></a>解压：</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf flume-ng-1.6.0-cdh5.16.2.tar.gz</span><br><span class="line"></span><br><span class="line">mv apache-flume-1.6.0-cdh5.16.2-bin /<span class="built_in">export</span>/servers</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量:"></a>配置环境变量:</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#打开profile文件</span></span><br><span class="line">vim /etc/profile</span><br><span class="line"></span><br><span class="line"><span class="comment">#最后一行添加环境变量</span></span><br><span class="line"><span class="built_in">export</span> FLUME_HOME=/<span class="built_in">export</span>/servers/apache-flume-1.6.0-cdh5.16.2-bin</span><br><span class="line"><span class="built_in">export</span> PATH=:<span class="variable">$FLUME_HOME</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#保存退出</span></span><br><span class="line">:x</span><br><span class="line"></span><br><span class="line"><span class="comment">#生效profile文件</span></span><br><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置env文件"><a href="#配置env文件" class="headerlink" title="配置env文件:"></a>配置env文件:</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#切换到Flume配置文件目录</span></span><br><span class="line"> <span class="built_in">cd</span> <span class="variable">$FLUME_HOME</span>/conf</span><br><span class="line"></span><br><span class="line"><span class="comment">#复制出一份flume-env文件</span></span><br><span class="line">cp flume-env.sh.template flume-env.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#编辑flume-env.sh 添加Java环境变量</span></span><br><span class="line">vim flume-env.sh </span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/<span class="built_in">export</span>/servers/jdk1.8.0_141</span><br></pre></td></tr></table></figure>
+
+<h2 id="Flume配置案例："><a href="#Flume配置案例：" class="headerlink" title="Flume配置案例："></a>Flume配置案例：</h2><h3 id="案例一："><a href="#案例一：" class="headerlink" title="案例一："></a>案例一：</h3><h4 id="1、配置文件"><a href="#1、配置文件" class="headerlink" title="1、配置文件"></a>1、配置文件</h4><figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># example.conf: A single-node Flume configuration</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Name the components on this agent</span></span><br><span class="line"><span class="comment">#a1是整个agent的名字</span></span><br><span class="line">a1.sources = r1			<span class="comment">#配置a1.sources的名字r1</span></span><br><span class="line">a1.sinks = k1			<span class="comment">#配置a1.sinks的名字k1</span></span><br><span class="line">a1.channels = c1		<span class="comment">#配置a1.channels的名字</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a1.sources.r1.type = netcat				<span class="comment">#设置a1的sources类型</span></span><br><span class="line">a1.sources.r1.bind = localhost			<span class="comment">#绑定ip地址</span></span><br><span class="line">a1.sources.r1.port = <span class="number">44444</span>				<span class="comment">#绑定端口号</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a1.sinks.k1.type = logger				<span class="comment">#sink打印到控制台上</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Use a channel which buffers events in memory</span></span><br><span class="line">a1.channels.c1.type = memory			<span class="comment">#定义我们的channels</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a1.sources.r1.channels = c1				<span class="comment">#关联上sources跟channels</span></span><br><span class="line">a1.sinks.k1.channel = c1				<span class="comment">#关联上sinks跟channel</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2、启动命令"><a href="#2、启动命令" class="headerlink" title="2、启动命令"></a>2、启动命令</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent \						</span><br><span class="line">--name a1 \												<span class="comment">#agent的名字</span></span><br><span class="line">--conf <span class="variable">$FLUME_HOME</span>/conf \								 <span class="comment">#conf的目录</span></span><br><span class="line">--conf-file <span class="variable">$FLUME_HOME</span>/script/example.conf \			   <span class="comment">#自定义的配置source、sink、channel</span></span><br><span class="line">-Dflume.root.logger=INFO,console						  <span class="comment">#日记级别</span></span><br></pre></td></tr></table></figure>
+
+<p>我们是用的netcat，所以我们启动完flume还要启动nc命令或者telnet命令监听44444端口，就可以了</p>
+<h3 id="案例二"><a href="#案例二" class="headerlink" title="案例二"></a>案例二</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">a1.sources = r1		</span><br><span class="line">a1.sinks = k1		</span><br><span class="line">a1.channels = c1	</span><br><span class="line"></span><br><span class="line">a1.sources.r1.type = netcat	</span><br><span class="line">a1.sources.r1.bind = localhost	</span><br><span class="line">a1.sources.r1.port = 44444		</span><br><span class="line"></span><br><span class="line">a1.sinks.k1.type = hdfs									 <span class="comment">#写入到hdfs当中</span></span><br><span class="line">a1.sinks.k1.hdfs.path = hdfs://node01/flume/netcat/			  <span class="comment">#写入的路径</span></span><br><span class="line">a1.sinks.k1.hdfs.batchSize = 10								<span class="comment">#每批次写入多少</span></span><br><span class="line">a1.sinks.k1.hdfs.fileType = DataStream						<span class="comment">#使用什么方式写入默认SequenceFile</span></span><br><span class="line">a1.sinks.k1.hdfs.writeFormat = Text							<span class="comment">#写入后的文件格式推荐Text</span></span><br><span class="line"></span><br><span class="line">a1.channels.c1.type = memory		</span><br><span class="line"></span><br><span class="line">a1.sources.r1.channels = c1				<span class="comment">#关联上sources跟channels</span></span><br><span class="line">a1.sinks.k1.channel = c1				<span class="comment">#关联上sinks跟channel</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id><a href="#" class="headerlink" title></a></h3>
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">大数据学习-Flume的基础使用</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
+        <p><span>发布时间:</span>2020-02-17, 10:17:18</p>
+        <p><span>最后更新:</span>2020-02-19, 10:30:29</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/" title="大数据学习-Flume的基础使用">http://yoursite.com/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">
+                    Hive中的UDF使用
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Flume的定义："><span class="toc-number">1.</span> <span class="toc-text">Flume的定义：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Flume的版本："><span class="toc-number">2.</span> <span class="toc-text">Flume的版本：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Flume的组成："><span class="toc-number">3.</span> <span class="toc-text">Flume的组成：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#source-源端数据采集-："><span class="toc-number">3.1.</span> <span class="toc-text">source(源端数据采集)：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Avro-Source："><span class="toc-number">3.1.1.</span> <span class="toc-text">Avro Source：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Exec-Source："><span class="toc-number">3.1.2.</span> <span class="toc-text">Exec Source：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Taildir-Source"><span class="toc-number">3.1.3.</span> <span class="toc-text">Taildir Source:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Kafka-Source："><span class="toc-number">3.1.4.</span> <span class="toc-text">Kafka Source：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Channel-临时存储聚合数据-："><span class="toc-number">3.2.</span> <span class="toc-text">Channel(临时存储聚合数据)：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Memory-channel"><span class="toc-number">3.2.1.</span> <span class="toc-text">Memory channel</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#File-channel"><span class="toc-number">3.2.2.</span> <span class="toc-text">File channel</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Kafka-channe"><span class="toc-number">3.2.3.</span> <span class="toc-text">Kafka channe</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sink（移动数据到目标端）"><span class="toc-number">3.3.</span> <span class="toc-text">Sink（移动数据到目标端）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#HDFS-Sink"><span class="toc-number">3.3.1.</span> <span class="toc-text">HDFS Sink</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Kafka-Sink"><span class="toc-number">3.3.2.</span> <span class="toc-text">Kafka Sink</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Avro-Sink"><span class="toc-number">3.3.3.</span> <span class="toc-text">Avro Sink</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Flume安装："><span class="toc-number">4.</span> <span class="toc-text">Flume安装：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#解压："><span class="toc-number">4.0.1.</span> <span class="toc-text">解压：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#配置环境变量"><span class="toc-number">4.0.2.</span> <span class="toc-text">配置环境变量:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#配置env文件"><span class="toc-number">4.0.3.</span> <span class="toc-text">配置env文件:</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Flume配置案例："><span class="toc-number">5.</span> <span class="toc-text">Flume配置案例：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#案例一："><span class="toc-number">5.1.</span> <span class="toc-text">案例一：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1、配置文件"><span class="toc-number">5.1.1.</span> <span class="toc-text">1、配置文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2、启动命令"><span class="toc-number">5.1.2.</span> <span class="toc-text">2、启动命令</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#案例二"><span class="toc-number">5.2.</span> <span class="toc-text">案例二</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#null"><span class="toc-number">5.3.</span> <span class="toc-text"></span></a></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"大数据学习-Flume的基础使用　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/" title="下一篇: Hive中的UDF使用">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">大数据学习-Flume的基础使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2020 不会加血的牧师
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 6;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
