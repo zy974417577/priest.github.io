@@ -187,7 +187,7 @@
                 
                 <section class="switch-part switch-part2">
                     <div class="widget tagcloud" id="js-tagcloud">
-                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
                     </div>
                 </section>
                 
@@ -582,6 +582,157 @@
       
         <p class="article-more-link">
           <a href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-大数据学习之HadoopHA部署" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoopHA%E9%83%A8%E7%BD%B2/" class="article-date">
+      <time datetime="2018-03-16T06:12:17.000Z" itemprop="datePublished">2018-03-16</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoopHA%E9%83%A8%E7%BD%B2/">大数据学习之HadoopHA部署</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+              <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="版本"><a href="#版本" class="headerlink" title="版本"></a>版本</h3><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CentOS</td>
+<td>CentOS Linux release 7.2.1511</td>
+</tr>
+<tr>
+<td>JRE</td>
+<td>java version”1.8.0_45”</td>
+</tr>
+<tr>
+<td>Hadoop</td>
+<td>hadoop-2.6.0-cdh5.16.2</td>
+</tr>
+<tr>
+<td>Zookeeper</td>
+<td>zookeeper-3.4.5-cdh5.16.2</td>
+</tr>
+</tbody></table>
+          
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
+    </div>
+
+      
+        <p class="article-more-link">
+          <a href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoopHA%E9%83%A8%E7%BD%B2/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-大数据学习之Spark算子Transformation" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/" class="article-date">
+      <time datetime="2018-03-16T01:12:20.000Z" itemprop="datePublished">2018-03-16</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/">大数据学习之Spark算子Transformation</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+              <h2 id="Transformation算子"><a href="#Transformation算子" class="headerlink" title="Transformation算子:"></a>Transformation算子:</h2><h3 id="map算子"><a href="#map算子" class="headerlink" title="map算子"></a>map算子</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 返回一个新的RDD，该RDD由每一个输入元素经过func函数转换后组成</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">	<span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.parallelize(<span class="type">Array</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>))</span><br><span class="line">	<span class="keyword">val</span> mapRDD: <span class="type">RDD</span>[<span class="type">Int</span>] = rdd.map(_*<span class="number">2</span>)</span><br><span class="line"><span class="comment">//mapRDD输出: 2 4 6 8 10 12</span></span><br></pre></td></tr></table></figure>
+          
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+    </div>
+
+      
+        <p class="article-more-link">
+          <a href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/#more">more >></a>
         </p>
       
       <div class="clearfix"></div>
