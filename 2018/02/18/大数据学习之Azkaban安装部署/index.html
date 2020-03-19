@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="不会加血的牧师" />
+
+
+
+<meta name="description" content="Azkaban安装部署：Azkaban安装模式​    Azkaban 有三种部署方式：单服务模式、2个服务模式、分布式多服务模式 solo server model（单服务模式）​    该模式中 webServer 和 executorServer 运行在同一个进程中，进程名是AzkabanSingleServer。可以使用自带的H2数据库或者配置mysql数据。该模式适用于小规模的使用。此模">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大数据学习之Azkaban安装部署">
+<meta property="og:url" content="http://yoursite.com/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/index.html">
+<meta property="og:site_name" content="不会加血的牧师">
+<meta property="og:description" content="Azkaban安装部署：Azkaban安装模式​    Azkaban 有三种部署方式：单服务模式、2个服务模式、分布式多服务模式 solo server model（单服务模式）​    该模式中 webServer 和 executorServer 运行在同一个进程中，进程名是AzkabanSingleServer。可以使用自带的H2数据库或者配置mysql数据。该模式适用于小规模的使用。此模">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-18T01:45:48.000Z">
+<meta property="article:modified_time" content="2020-03-19T14:39:13.585Z">
+<meta property="article:author" content="不会加血的牧师">
+<meta property="article:tag" content="环境部署">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="不会加血的牧师" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>大数据学习之Azkaban安装部署 | 不会加血的牧师</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">不会加血的牧师</a></h1>
+        </hgroup>
+
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" target="_blank" rel="noopener" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/zy974417577" target="_blank" rel="noopener" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" href="https://space.bilibili.com/7907653" target="_blank" rel="noopener" title="bilibili"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/" target="_blank" rel="noopener">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/" target="_blank" rel="noopener">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">专注于前端</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" target="_blank" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/zy974417577" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" target="_blank" href="https://space.bilibili.com/7907653" title="bilibili"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-大数据学习之Azkaban安装部署" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-date">
+      <time datetime="2018-02-18T01:45:48.000Z" itemprop="datePublished">2018-02-18</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      大数据学习之Azkaban安装部署
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h2 id="Azkaban安装部署："><a href="#Azkaban安装部署：" class="headerlink" title="Azkaban安装部署："></a>Azkaban安装部署：</h2><h3 id="Azkaban安装模式"><a href="#Azkaban安装模式" class="headerlink" title="Azkaban安装模式"></a>Azkaban安装模式</h3><p>​    Azkaban 有三种部署方式：单服务模式、2个服务模式、分布式多服务模式</p>
+<h4 id="solo-server-model（单服务模式）"><a href="#solo-server-model（单服务模式）" class="headerlink" title="solo server model（单服务模式）"></a>solo server model（单服务模式）</h4><p>​    该模式中 webServer 和 executorServer 运行在同一个进程中，进程名是AzkabanSingleServer。可以使用自带的H2数据库或者配置mysql数据。该模式适用于小规模的使用。此模式合适个人试用使用。它也可以用在小规模的使用案例中。</p>
+<a id="more"></a>
+
+<h4 id="two-server-model（2个服务模式）"><a href="#two-server-model（2个服务模式）" class="headerlink" title="two server model（2个服务模式）"></a>two server model（2个服务模式）</h4><p>​    数据库为mysql，采用主从设置进行备份，管理服务器（webServer）和执行服务器（executorServer）在不同进程中运行，这种模式下，管理服务器和执行服务器互不影响。适用在较重的生成环境中。</p>
+<h4 id="multiple-executor（分布式多服务模式）"><a href="#multiple-executor（分布式多服务模式）" class="headerlink" title="multiple-executor（分布式多服务模式）"></a>multiple-executor（分布式多服务模式）</h4><p>​    存放元数据的数据库为mysql，采用主从设置进行备份，管理服务器（webServer）和执行服务器（executorServer）在不同进程中运行。多个 Executor 模式为最重的生产环境.</p>
+<h3 id="Azkaban-3-x安装（two-server-model）"><a href="#Azkaban-3-x安装（two-server-model）" class="headerlink" title="Azkaban 3.x安装（two server model）"></a>Azkaban 3.x安装（two server model）</h3><h4 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h4><p>​    安装JDK1.8<br>​    安装MySQL<br>​    安装Git(源码编译用)<br>​    Linux系统CentOS 7.2</p>
+<h4 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h4><p>​    编译看官网，官网的步骤给的很明确，我写博客的目的也是为了给自己看。等到我那天用的时候看着我的博客可以快速回想起来我当时是如何搭建的环境（官网<a href="https://azkaban.github.io/" target="_blank" rel="noopener">https://azkaban.github.io/</a>）</p>
+<p>​    官网下载安装包，这里我用的版本是azkaban-3.81.0.tar.gz。（*<u><strong>注意！！！如果不是使用的云主机，而是自己的虚拟机，请自行挂载VPN,否则编译是不会成功的</strong></u>*。）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 soft]$ tar -zxvf azkaban-3.81.0.tar.gz -C ../app</span><br><span class="line">[hadoop@hadoop002 soft]$ <span class="built_in">cd</span> ../app/azkaban-3.81.0</span><br><span class="line">[hadoop@hadoop002 azkaban-3.81.0]$  ./gradlew build installDist -x <span class="built_in">test</span>  <span class="comment">#编译安装</span></span><br><span class="line">[hadoop@hadoop002 azkaban-3.81.0]$ <span class="built_in">cd</span> azkaban-exec-server/build/distributions/</span><br><span class="line">[hadoop@hadoop002 distributions]$ ll</span><br><span class="line">总用量 31584</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop 16166670 3月  18 18:17 azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</span><br><span class="line">-rw-rw-r--. 1 hadoop hadoop 16172434 3月  18 18:17 azkaban-exec-server-0.1.0-SNAPSHOT.zip</span><br><span class="line">[hadoop@hadoop002 distributions]$ tar -zxvf azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz -C ~/app/azkaban/</span><br><span class="line">[hadoop@hadoop002 distributions]$ <span class="built_in">cd</span> ../../../azkaban-web-server/build/distributions/</span><br><span class="line">[hadoop@hadoop002 distributions]$ tar -zxvfazkaban-web-server-0.1.0-SNAPSHOT.tar.gz -C ~/app/azkaban/</span><br></pre></td></tr></table></figure>
+
+<p>​    这里我们需要azkaban-exec-server-0.1.0-SNAPSHOT，跟azkaban-web-server-0.1.0-SNAPSHOT这俩个文件一个是exec,一个是web界面</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 azkaban]$ ll</span><br><span class="line">总用量 0</span><br><span class="line">drwxr-xr-x. 6 hadoop hadoop 51 3月  18 18:17 azkaban-exec-server-0.1.0-SNAPSHOT</span><br><span class="line">drwxr-xr-x. 6 hadoop hadoop 47 3月  18 18:13 azkaban-web-server-0.1.0-SNAPSHOT</span><br></pre></td></tr></table></figure>
+
+<h4 id="更配置文件"><a href="#更配置文件" class="headerlink" title="更配置文件"></a>更配置文件</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> azkaban-web-server-0.1.0-SNAPSHOT/conf</span><br><span class="line">vim azkaban.properties</span><br><span class="line"><span class="comment">#更改端口</span></span><br><span class="line">jetty.port=7071</span><br><span class="line"><span class="comment">#更改mysql信息</span></span><br><span class="line">database.type=mysql</span><br><span class="line">mysql.port=3306</span><br><span class="line">mysql.host=localhost</span><br><span class="line">mysql.database=azkaban</span><br><span class="line">mysql.user=root</span><br><span class="line">mysql.password=123456</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> azkaban-exec-server-0.1.0-SNAPSHOT/conf</span><br><span class="line">vim azkaban.properties</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建Azkaban元数据"><a href="#创建Azkaban元数据" class="headerlink" title="创建Azkaban元数据"></a>创建Azkaban元数据</h4><p>​    登录mysql创建azkaban元数据，先找到创建azkaban的sql。在<em>/azkaban-3.81.0/azkaban-db/build/sql</em> 这个目录下的<em>create-all-sql-0.1.0-SNAPSHOT.sql</em>这个文件<br>​    登录到mysql</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 sql]$ mysql -uroot -p</span><br><span class="line">mysql&gt; create database azkaban;</span><br><span class="line">mysql&gt; use azkaban;</span><br><span class="line">mysql&gt; <span class="built_in">source</span> /home/hadoop/app/azkaban-3.81.0/azkaban-db/build/sql/create-all-sql-0.1.0-SNAPSHOT.sql;</span><br><span class="line">mysql&gt; show tables;</span><br><span class="line">+-----------------------------+</span><br><span class="line">| Tables_in_azkaban           |</span><br><span class="line">+-----------------------------+</span><br><span class="line">| QRTZ_BLOB_TRIGGERS          |</span><br><span class="line">| QRTZ_CALENDARS              |</span><br><span class="line">| QRTZ_CRON_TRIGGERS          |</span><br><span class="line">| QRTZ_FIRED_TRIGGERS         |</span><br><span class="line">| QRTZ_JOB_DETAILS            |</span><br><span class="line">| QRTZ_LOCKS                  |</span><br><span class="line">| QRTZ_PAUSED_TRIGGER_GRPS    |</span><br><span class="line">| QRTZ_SCHEDULER_STATE        |</span><br><span class="line">| QRTZ_SIMPLE_TRIGGERS        |</span><br><span class="line">| QRTZ_SIMPROP_TRIGGERS       |</span><br><span class="line">| QRTZ_TRIGGERS               |</span><br><span class="line">| active_executing_flows      |</span><br><span class="line">| active_sla                  |</span><br><span class="line">| execution_dependencies      |</span><br><span class="line">| execution_flows             |</span><br><span class="line">| execution_jobs              |</span><br><span class="line">| execution_logs              |</span><br><span class="line">| executor_events             |</span><br><span class="line">| executors                   |</span><br><span class="line">| project_events              |</span><br><span class="line">| project_files               |</span><br><span class="line">| project_flow_files          |</span><br><span class="line">| project_flows               |</span><br><span class="line">| project_permissions         |</span><br><span class="line">| project_properties          |</span><br><span class="line">| project_versions            |</span><br><span class="line">| projects                    |</span><br><span class="line">| properties                  |</span><br><span class="line">| ramp                        |</span><br><span class="line">| ramp_dependency             |</span><br><span class="line">| ramp_exceptional_flow_items |</span><br><span class="line">| ramp_exceptional_job_items  |</span><br><span class="line">| ramp_items                  |</span><br><span class="line">| triggers                    |</span><br><span class="line">| validated_dependencies      |</span><br><span class="line">+-----------------------------+</span><br><span class="line">35 rows <span class="keyword">in</span> <span class="built_in">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动Excutor"><a href="#启动Excutor" class="headerlink" title="启动Excutor"></a>启动Excutor</h4><p>​    启动的时候只能azkaban-exec-server-0.1.0-SNAPSHOT目录下启动</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 azkaban-exec-server-0.1.0-SNAPSHOT]$ bin/start-exec.sh </span><br><span class="line">[hadoop@hadoop002 azkaban-exec-server-0.1.0-SNAPSHOT]$ jps</span><br><span class="line">2529 NameNode</span><br><span class="line">2836 QuorumPeerMain</span><br><span class="line">2980 DFSZKFailoverController</span><br><span class="line">4229 AzkabanExecutorServer				<span class="comment">#已经启动AzkabanExecutor</span></span><br><span class="line">2598 DataNode</span><br><span class="line">4246 Jps</span><br><span class="line">2747 JournalNode</span><br><span class="line">3071 NodeManager</span><br></pre></td></tr></table></figure>
+
+<p>​    然后启动web界面,此时启动是失败的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 azkaban-web-server-0.1.0-SNAPSHOT]$ bin&#x2F;start-web.sh </span><br><span class="line">[hadoop@hadoop002 azkaban-web-server-0.1.0-SNAPSHOT]$ tail -100f webServerLog_2020-03-20+06\:09\:29.out</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.727 +0800 ERROR [ExecutorManager] [Azkaban] No active executors found</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.727 +0800 ERROR [StdOutErrRedirect] [Azkaban] Exception in thread &quot;main&quot; </span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.728 +0800 ERROR [StdOutErrRedirect] [Azkaban] azkaban.executor.ExecutorManagerException: No active executors found</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.728 +0800 ERROR [StdOutErrRedirect] [Azkaban] 	at azkaban.executor.ActiveExecutors.setupExecutors(ActiveExecutors.java:52)</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.728 +0800 ERROR [StdOutErrRedirect] [Azkaban] 	at azkaban.executor.ExecutorManager.setupExecutors(ExecutorManager.java:201)</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.729 +0800 ERROR [StdOutErrRedirect] [Azkaban] 	at azkaban.executor.ExecutorManager.initialize(ExecutorManager.java:135)</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.729 +0800 ERROR [StdOutErrRedirect] [Azkaban] 	at azkaban.executor.ExecutorManager.start(ExecutorManager.java:149)</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.730 +0800 ERROR [StdOutErrRedirect] [Azkaban] 	at azkaban.webapp.AzkabanWebServer.launch(AzkabanWebServer.java:231)</span><br><span class="line">2020&#x2F;03&#x2F;20 06:09:31.730 +0800 ERROR [StdOutErrRedirect] [Azkaban] 	at azkaban.webapp.AzkabanWebServer.main(AzkabanWebServer.java:224)</span><br></pre></td></tr></table></figure>
+
+<p>​    我们查看日志，他说No active executors found，然后我们去查看数据库azkaban用户executors表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; use azkaban;</span><br><span class="line">mysql&gt; select * from executors;</span><br><span class="line">+----+-----------+-------+--------+</span><br><span class="line">| id | host      | port  | active |</span><br><span class="line">+----+-----------+-------+--------+</span><br><span class="line">|  1 | hadoop002 | 54042 |      0 |</span><br><span class="line">+----+-----------+-------+--------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<p>​    这里active显示是0，没有被激活的，这个时候，web界面是启动不了的。我们要更改active状态，官网也给了例子<strong>*<u>curl -G “localhost:$(&lt;./executor.port)/executor?action=activate” &amp;&amp; echo</u>*</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 ~]$ curl -G <span class="string">"hadoop002:54042/executor?action=activate"</span> &amp;&amp; <span class="built_in">echo</span></span><br><span class="line">&#123;<span class="string">"status"</span>:<span class="string">"success"</span>&#125;</span><br><span class="line"><span class="comment">#我们继续去查看mysql</span></span><br><span class="line">mysql&gt; select * from executors;</span><br><span class="line">+----+-----------+-------+--------+</span><br><span class="line">| id | host      | port  | active |</span><br><span class="line">+----+-----------+-------+--------+</span><br><span class="line">|  1 | hadoop002 | 54042 |      1 |</span><br><span class="line">+----+-----------+-------+--------+</span><br><span class="line">1 row <span class="keyword">in</span> <span class="built_in">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<p>​    此时的状态变成了1，我们去重新启动web界面就可以了</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/">大数据学习之Azkaban安装部署</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
+        <p><span>发布时间:</span>2018-02-18, 09:45:48</p>
+        <p><span>最后更新:</span>2020-03-19, 22:39:13</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" title="大数据学习之Azkaban安装部署">http://yoursite.com/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/">
+                    大数据学习之Spark算子Transformation
+                </a>
+            </div>
+        
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Azkaban安装部署："><span class="toc-number">1.</span> <span class="toc-text">Azkaban安装部署：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Azkaban安装模式"><span class="toc-number">1.1.</span> <span class="toc-text">Azkaban安装模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#solo-server-model（单服务模式）"><span class="toc-number">1.1.1.</span> <span class="toc-text">solo server model（单服务模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#two-server-model（2个服务模式）"><span class="toc-number">1.1.2.</span> <span class="toc-text">two server model（2个服务模式）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#multiple-executor（分布式多服务模式）"><span class="toc-number">1.1.3.</span> <span class="toc-text">multiple-executor（分布式多服务模式）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Azkaban-3-x安装（two-server-model）"><span class="toc-number">1.2.</span> <span class="toc-text">Azkaban 3.x安装（two server model）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#环境准备"><span class="toc-number">1.2.1.</span> <span class="toc-text">环境准备</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#编译安装"><span class="toc-number">1.2.2.</span> <span class="toc-text">编译安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#更配置文件"><span class="toc-number">1.2.3.</span> <span class="toc-text">更配置文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#创建Azkaban元数据"><span class="toc-number">1.2.4.</span> <span class="toc-text">创建Azkaban元数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#启动Excutor"><span class="toc-number">1.2.5.</span> <span class="toc-text">启动Excutor</span></a></li></ol></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"大数据学习之Azkaban安装部署　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/" title="上一篇: 大数据学习之Spark算子Transformation">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">大数据学习-Flume的基础使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoopHA%E9%83%A8%E7%BD%B2/">大数据学习之HadoopHA部署</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/">大数据学习之Spark算子Transformation</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/">大数据学习之Azkaban安装部署</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2020 不会加血的牧师
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 6;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
