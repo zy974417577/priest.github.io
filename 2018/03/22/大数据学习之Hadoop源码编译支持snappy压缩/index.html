@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="不会加血的牧师" />
+
+
+
+<meta name="description" content="Hadoop源码编译支持snappy压缩问题起因​    之前有一篇博客写了Hadoop HA环境的搭建，里面有点问题。我在运行hadoo jar的时候报错，错误如下。后来发现我在mapred-site.xm里面开启了map压缩。我的hadoop本身是不支持压缩格式的，这个需要源码编译安装，支持压缩格式的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大数据学习之Hadoop源码编译支持snappy压缩">
+<meta property="og:url" content="http://yoursite.com/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/index.html">
+<meta property="og:site_name" content="不会加血的牧师">
+<meta property="og:description" content="Hadoop源码编译支持snappy压缩问题起因​    之前有一篇博客写了Hadoop HA环境的搭建，里面有点问题。我在运行hadoo jar的时候报错，错误如下。后来发现我在mapred-site.xm里面开启了map压缩。我的hadoop本身是不支持压缩格式的，这个需要源码编译安装，支持压缩格式的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/error.png">
+<meta property="og:image" content="http://yoursite.com/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/d.png">
+<meta property="article:published_time" content="2018-03-22T08:05:32.000Z">
+<meta property="article:modified_time" content="2020-03-22T10:59:21.206Z">
+<meta property="article:author" content="不会加血的牧师">
+<meta property="article:tag" content="环境搭建">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/error.png">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="不会加血的牧师" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>大数据学习之Hadoop源码编译支持snappy压缩 | 不会加血的牧师</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">不会加血的牧师</a></h1>
+        </hgroup>
+
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" target="_blank" rel="noopener" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/zy974417577" target="_blank" rel="noopener" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" href="https://space.bilibili.com/7907653" target="_blank" rel="noopener" title="bilibili"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="tag">环境搭建</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/" target="_blank" rel="noopener">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/" target="_blank" rel="noopener">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">专注于前端</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" target="_blank" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/zy974417577" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" target="_blank" href="https://space.bilibili.com/7907653" title="bilibili"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-大数据学习之Hadoop源码编译支持snappy压缩" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/" class="article-date">
+      <time datetime="2018-03-22T08:05:32.000Z" itemprop="datePublished">2018-03-22</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      大数据学习之Hadoop源码编译支持snappy压缩
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="tag">环境搭建</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h1 id="Hadoop源码编译支持snappy压缩"><a href="#Hadoop源码编译支持snappy压缩" class="headerlink" title="Hadoop源码编译支持snappy压缩"></a>Hadoop源码编译支持snappy压缩</h1><h2 id="问题起因"><a href="#问题起因" class="headerlink" title="问题起因"></a>问题起因</h2><p>​    之前有一篇博客写了Hadoop HA环境的搭建，里面有点问题。我在运行hadoo jar的时候报错，错误如下。后来发现我在mapred-site.xm里面开启了map压缩。我的hadoop本身是不支持压缩格式的，这个需要源码编译安装，支持压缩格式的</p>
+<a id="more"></a>
+
+<p><strong>错误如下：</strong></p>
+<p><img src="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/error.png" alt="error"></p>
+<p><strong>查看是否支持压缩：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 hadoop]<span class="comment"># bin/hadoop checknative</span></span><br><span class="line">Native library checking:</span><br><span class="line">hadoop:  <span class="literal">false</span> </span><br><span class="line">zlib:    <span class="literal">false</span> </span><br><span class="line">snappy:  <span class="literal">false</span> </span><br><span class="line">lz4:     <span class="literal">false</span> </span><br><span class="line">bzip2:   <span class="literal">false</span> </span><br><span class="line">openssl: <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>mapred-site.xm配置信息：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="meta">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- 配置 MapReduce Applications --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.framework.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">value</span>&gt;</span>yarn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- JobHistory Server ============================================================== --&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- 配置 MapReduce JobHistory Server 地址 ，默认端口10020 --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.jobhistory.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">value</span>&gt;</span>hadoop001:10020<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- 配置 MapReduce JobHistory Server web ui 地址， 默认端口19888 --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.jobhistory.webapp.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">value</span>&gt;</span>hadoop001:19888<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 配置 Map段输出的压缩,snappy，问题就在这里，配置snappy，但是集群本身并不支持--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.map.output.compress<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">      <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">              </span><br><span class="line">  <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.map.output.compress.codec<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">      <span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.hadoop.io.compress.SnappyCodec<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><table>
+<thead>
+<tr>
+<th>软件</th>
+<th>版本</th>
+<th>下载地址</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CentOS</td>
+<td>CentOS 7.2</td>
+<td>上传中。。。后续更新</td>
+</tr>
+<tr>
+<td>JDK</td>
+<td>java version “1.7.0_79”</td>
+<td>链接：<a href="https://pan.baidu.com/s/1rd-jWqIVpzggnl4erc771g" target="_blank" rel="noopener">https://pan.baidu.com/s/1rd-jWqIVpzggnl4erc771g</a>  提取码：as2l</td>
+</tr>
+<tr>
+<td>Maven</td>
+<td>Apache Maven 3.3.9</td>
+<td>链接：<a href="https://pan.baidu.com/s/1rd-jWqIVpzggnl4erc771g" target="_blank" rel="noopener">https://pan.baidu.com/s/1rd-jWqIVpzggnl4erc771g</a>  提取码：as2l</td>
+</tr>
+<tr>
+<td>Protobuf</td>
+<td>protobuf-2.5.0</td>
+<td>链接：<a href="https://pan.baidu.com/s/1rd-jWqIVpzggnl4erc771g" target="_blank" rel="noopener">https://pan.baidu.com/s/1rd-jWqIVpzggnl4erc771g</a>  提取码：as2l</td>
+</tr>
+<tr>
+<td>Ant</td>
+<td>Apache Ant(TM) version 1.9.14</td>
+<td>上传中。。。后续更新</td>
+</tr>
+<tr>
+<td>Snappy</td>
+<td>snappy-1.1.1</td>
+<td>上传中。。。后续更新</td>
+</tr>
+<tr>
+<td>mvn仓库</td>
+<td>这个仓库是我编译下好的</td>
+<td>上传中。。。后续更新</td>
+</tr>
+</tbody></table>
+<h3 id="安装yum-install-需要的库"><a href="#安装yum-install-需要的库" class="headerlink" title="安装yum install 需要的库"></a>安装yum install 需要的库</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum -y install svn ncurses-devel gcc*</span><br><span class="line">yum -y install lzo-devel zlib-devel autoconf automake libtool cmake openssl-devel</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装protobuf"><a href="#安装protobuf" class="headerlink" title="安装protobuf"></a>安装protobuf</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 soft]# tar -zxvf protobuf-2.5.0.tar.gz -C ..&#x2F;app</span><br><span class="line">[root@hadoop002 soft]# cd ..&#x2F;app&#x2F;protobuf-2.5.0</span><br><span class="line">[root@hadoop002 protobuf-2.5.0]# .&#x2F;configure</span><br><span class="line">[root@hadoop002 protobuf-2.5.0]# make &amp;&amp; make install</span><br><span class="line">[root@hadoop002 protobuf-2.5.0]# protoc</span><br><span class="line">Missing input file.</span><br><span class="line">[root@hadoop002 protobuf-2.5.0]# protoc --version</span><br><span class="line">libprotoc 2.5.0</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装ant"><a href="#安装ant" class="headerlink" title="安装ant"></a>安装ant</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 soft]# tar -zxvf apache-ant-1.19.7-bin.tar.gz -C ..&#x2F;app</span><br><span class="line">[root@hadoop002 soft]# cd ..&#x2F;app&#x2F;apache-ant-1.19.7</span><br><span class="line">[root@hadoop002 apache-ant-1.9.14]# bin&#x2F;ant -v</span><br><span class="line">Apache Ant(TM) version 1.9.14 compiled on March 12 2019</span><br><span class="line">Trying the default build file: build.xml</span><br><span class="line">Buildfile: build.xml does not exist!</span><br><span class="line">Build failed</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装Maven"><a href="#安装Maven" class="headerlink" title="安装Maven"></a>安装Maven</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 soft]# tar -zxvf apache-maven-3.3.9-bin.tar.gz -C ../app</span><br><span class="line">[root@hadoop002 soft]# cd ../app/apache-maven-3.3.9/conf</span><br><span class="line">[root@hadoop002 conf]# vim settings.xml </span><br><span class="line"><span class="comment">&lt;!--添加下面代码--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">localRepository</span>&gt;</span>/usr/local/maven/repos<span class="tag">&lt;/<span class="name">localRepository</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">id</span>&gt;</span>alimaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>aliyun maven<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="安装snappy-1-1-1"><a href="#安装snappy-1-1-1" class="headerlink" title="安装snappy-1.1.1"></a>安装snappy-1.1.1</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 soft]# tar -zxvf snappy-1.1.1.tar.gz  -C ..&#x2F;app</span><br><span class="line">[root@hadoop002 soft]# cd ..&#x2F;app&#x2F;snappy-1.1.1</span><br><span class="line">[root@hadoop002 snappy-1.1.1]# .&#x2F;configure</span><br><span class="line">[root@hadoop002 snappy-1.1.1]# make &amp;&amp; make install</span><br><span class="line">[root@hadoop002 snappy-1.1.1]# ls -lh &#x2F;usr&#x2F;local&#x2F;lib |grep snappy</span><br><span class="line">-rw-r--r--. 1 root root 323K 3月  22 00:48 libsnappy.a</span><br><span class="line">-rwxr-xr-x. 1 root root  953 3月  22 00:48 libsnappy.la</span><br><span class="line">lrwxrwxrwx. 1 root root   18 3月  22 00:48 libsnappy.so -&gt; libsnappy.so.1.2.0</span><br><span class="line">lrwxrwxrwx. 1 root root   18 3月  22 00:48 libsnappy.so.1 -&gt; libsnappy.so.1.2.0</span><br><span class="line">-rwxr-xr-x. 1 root root 161K 3月  22 00:48 libsnappy.so.1.2.0</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=/home/hadoop/app/jdk1.7.0_79</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> ANT_HOME=/home/hadoop/app/apache-ant-1.9.14</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;ANT_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> MAVEN_HOME=/home/hadoop/app/apache-maven-3.3.9</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;MAVEN_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> FINDBUGS_HOME=/home/hadoop/app/findbugs-3.0.1</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;FINDBUGS_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="开始编译"><a href="#开始编译" class="headerlink" title="开始编译"></a>开始编译</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn clean package -Pdist,native -DskipTests -Dtar -Dbundle.snappy -Dsnappy.lib=/usr/<span class="built_in">local</span>/lib</span><br></pre></td></tr></table></figure>
+
+<h3 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Pdist,native ：把重新编译生成的hadoop动态库；</span><br><span class="line">DskipTests ：跳过测试</span><br><span class="line">Dtar ：最后把文件以tar打包</span><br><span class="line">Dbundle.snappy ：添加snappy压缩支持【默认官网下载的是不支持的】</span><br><span class="line">Dsnappy.lib&#x3D;&#x2F;usr&#x2F;local&#x2F;lib ：指snappy在编译机器上安装后的库路径</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看是否支持snappy压缩"><a href="#查看是否支持snappy压缩" class="headerlink" title="查看是否支持snappy压缩"></a>查看是否支持snappy压缩</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop002 hadoop-2.6.0-cdh5.16.2]<span class="comment"># bin/hadoop checknative</span></span><br><span class="line">Native library checking:</span><br><span class="line">hadoop:  <span class="literal">true</span> /home/hadoop/hadoop-2.6.0-cdh5.16.2/lib/native/libhadoop.so.1.0.0</span><br><span class="line">zlib:    <span class="literal">true</span> /lib64/libz.so.1</span><br><span class="line">snappy:  <span class="literal">true</span> /home/hadoop/hadoop-2.6.0-cdh5.16.2/lib/native/libsnappy.so.1</span><br><span class="line">lz4:     <span class="literal">true</span> revision:10301</span><br><span class="line">bzip2:   <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="编译错误"><a href="#编译错误" class="headerlink" title="编译错误"></a>编译错误</h2><h3 id="问题一"><a href="#问题一" class="headerlink" title="问题一"></a>问题一</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[occured: exec returned: 2 ERROR] around Ant part ...&lt;exec[dir&#x3D;&quot;&#x2F;root&#x2F;soft&#x2F;hadoop-2.7.3-src&#x2F;hadoop-common-project&#x2F;hadoop-kms&#x2F;target&quot;</span><br></pre></td></tr></table></figure>
+
+<p>​    估计是ant没有安装好或环境配置有问题，检查一下环境变量。<strong>特别注意</strong>：<strong>*<u>千万不要是用JDK1.8，JDK1.8对应的ant是1.10版本。JDK1.7对应的ant是1.19版本。千万不要搞错了，这里走过坑的！！！</u>*</strong></p>
+<h3 id="问题二"><a href="#问题二" class="headerlink" title="问题二"></a>问题二</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Could not transfer artifact com.cloudera.cdh:cdh-root:pom:5.16.2 from/to cdh.repo</span><br></pre></td></tr></table></figure>
+
+<p>​    这种找不到，报error的，你就wget 手动去Maven上下载。<strong>*<u>然后下载到对应的你的maven仓库中</u>*</strong>，我下面举个例子，因为我在编译遇到的问题基本就是这种下不下来的情况,我遇到这种情况大概有几十个下载不下来的。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#cd 到maven仓库下面</span></span><br><span class="line"><span class="built_in">cd</span> /usr/<span class="built_in">local</span>/maven/repos</span><br><span class="line"><span class="comment">#上面说com/cloudera/cdh/cdh-root/5.16.2这个目录下的cdh-root-5.16.2.pom这个文件下载不下来</span></span><br><span class="line"><span class="comment">#这个时候去maven仓库里下载，地址我贴上了,下载下来就好了</span></span><br><span class="line">wget https://repository.cloudera.com/artifactory/cloudera-repos/com/cloudera/cdh/cdh-root/5.16.2/</span><br></pre></td></tr></table></figure>
+
+<h3 id="问题三"><a href="#问题三" class="headerlink" title="问题三"></a>问题三</h3><p><img src="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/d.png" alt="d"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#这个问题是repsitory.apache.org仓库里没有，这个时候要去中央仓库里下载。地址下面，跟上面一样下载到对应的目录下面重新编译</span></span><br><span class="line">https://repo1.maven.org/maven2/</span><br></pre></td></tr></table></figure>
+
+<h3 id="最终解决方案"><a href="#最终解决方案" class="headerlink" title="最终解决方案"></a>最终解决方案</h3><p>​    编译的时候基本都jar包或者pom文件下载不下来，俩个建议，给大家提供考虑：</p>
+<h4 id="建议一"><a href="#建议一" class="headerlink" title="建议一"></a>建议一</h4><p>​    使用我提供的maven仓库下载，<strong><u>但是我的版本是hadoop-2.6.0-cdh5.16.2</u></strong>。如果你是编译别的版本，那么你就看建议二。</p>
+<h4 id="建议二"><a href="#建议二" class="headerlink" title="建议二"></a>建议二</h4><p>​    <strong>*<u>打开阿里云，用云服务器。100块钱，选择按量付费机器。租一个，下载很快。我编译加找错误，花了一天半的时间，费时费力的。有能力还是用云服务吧。</u>*</strong></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/">大数据学习之Hadoop源码编译支持snappy压缩</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
+        <p><span>发布时间:</span>2018-03-22, 16:05:32</p>
+        <p><span>最后更新:</span>2020-03-22, 18:59:21</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/" title="大数据学习之Hadoop源码编译支持snappy压缩">http://yoursite.com/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">
+                    MapReduce执行流程分析（下）
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">
+                    MapReduce执行流程分析（上）
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Hadoop源码编译支持snappy压缩"><span class="toc-number">1.</span> <span class="toc-text">Hadoop源码编译支持snappy压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#问题起因"><span class="toc-number">1.1.</span> <span class="toc-text">问题起因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#环境准备"><span class="toc-number">1.2.</span> <span class="toc-text">环境准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装yum-install-需要的库"><span class="toc-number">1.2.1.</span> <span class="toc-text">安装yum install 需要的库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安装protobuf"><span class="toc-number">1.2.2.</span> <span class="toc-text">安装protobuf</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安装ant"><span class="toc-number">1.2.3.</span> <span class="toc-text">安装ant</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安装Maven"><span class="toc-number">1.2.4.</span> <span class="toc-text">安装Maven</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安装snappy-1-1-1"><span class="toc-number">1.2.5.</span> <span class="toc-text">安装snappy-1.1.1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#配置环境变量"><span class="toc-number">1.2.6.</span> <span class="toc-text">配置环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#开始编译"><span class="toc-number">1.2.7.</span> <span class="toc-text">开始编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#参数说明"><span class="toc-number">1.2.8.</span> <span class="toc-text">参数说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查看是否支持snappy压缩"><span class="toc-number">1.2.9.</span> <span class="toc-text">查看是否支持snappy压缩</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#编译错误"><span class="toc-number">1.3.</span> <span class="toc-text">编译错误</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#问题一"><span class="toc-number">1.3.1.</span> <span class="toc-text">问题一</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#问题二"><span class="toc-number">1.3.2.</span> <span class="toc-text">问题二</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#问题三"><span class="toc-number">1.3.3.</span> <span class="toc-text">问题三</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#最终解决方案"><span class="toc-number">1.3.4.</span> <span class="toc-text">最终解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#建议一"><span class="toc-number">1.3.4.1.</span> <span class="toc-text">建议一</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#建议二"><span class="toc-number">1.3.4.2.</span> <span class="toc-text">建议二</span></a></li></ol></li></ol></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"大数据学习之Hadoop源码编译支持snappy压缩　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/" title="上一篇: MapReduce执行流程分析（下）">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/" title="下一篇: MapReduce执行流程分析（上）">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">大数据学习-Flume的基础使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/">大数据学习之Hadoop源码编译支持snappy压缩</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoopHA%E9%83%A8%E7%BD%B2/">大数据学习之HadoopHA部署</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/">大数据学习之Spark算子Transformation</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/">大数据学习之Azkaban安装部署</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2020 不会加血的牧师
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 6;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
