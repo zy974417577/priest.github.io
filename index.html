@@ -187,7 +187,7 @@
                 
                 <section class="switch-part switch-part2">
                     <div class="widget tagcloud" id="js-tagcloud">
-                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="tag">环境搭建</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="tag">环境搭建</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
                     </div>
                 </section>
                 
@@ -454,6 +454,135 @@
       
         <p class="article-more-link">
           <a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-大数据学习之调试Hive源码" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/04/13/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B0%83%E8%AF%95Hive%E6%BA%90%E7%A0%81/" class="article-date">
+      <time datetime="2018-04-13T04:06:08.000Z" itemprop="datePublished">2018-04-13</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/13/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B0%83%E8%AF%95Hive%E6%BA%90%E7%A0%81/">大数据学习之调试Hive源码</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+              <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>​    IDEA整合Hive源码的时候有很多很多的坑，有些问题必须要写在前面。这里我们用apache的版本，还是去Hive的GitHub上下载源码。不太建议使用CDH,CDH我在导入工程的时候好多类都没有。也是自己在Maven上找到对应的源码下载好拷贝进去的。然后就是运行环境，<strong>*<u>强烈不建议使用Windows平台</u>*</strong>！如果自己的电脑是mac那就最好了可以避免一些坑，<strong>*<u>如果自己是Windows的话建议安装一个图形化的Centos7 系统</u>*</strong>。因为我没有在Windows平台下调试通过，反而在Centos下通过了。我们编译选择在Windows下，运行环境在图形化的Centos7（为啥不在Centos7下面编译，因为内存不够）<br>​    这篇文章大概分为三个章节，第一章是在Windows上编译并且运行hive源码；第二章是安装Centos。如果是mac用户不用看安装Centos系统了第一个就够了；第三章是Centos下运行IDEA调试hive源码。<br>​    <strong>*<u>特别注意：WIndows下调试IDEA已经于2018-04-14号解决了，可以不用使用CentOS7调试了！后面我会贴出修改源码的相关信息。因为hive默认是使用MAC跟Linux的窗口。</u>*</strong></p>
+          
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+    </div>
+
+      
+        <p class="article-more-link">
+          <a href="/2018/04/13/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B0%83%E8%AF%95Hive%E6%BA%90%E7%A0%81/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-大数据学习之StorageFormat" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/" class="article-date">
+      <time datetime="2018-04-08T07:43:24.000Z" itemprop="datePublished">2018-04-08</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/">大数据学习之StorageFormat</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+              <p>​    Apache Hive支持Apache Hadoop中使用的几种熟悉的文件格式，比如<strong>TextFile，RCFile，SequenceFile，AVRO，ORC和Parquet</strong>格式。在创建Hive表的时候可以使用<strong>STOREA AS</strong> 创建，如官网示例</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> [STORED AS file_format]<span class="comment">-- (这里指定你要创建的格式是什么)</span></span><br><span class="line">   | STORED BY 'storage.handler.class.name<span class="string">' [WITH SERDEPROPERTIES (...)]  </span></span><br><span class="line"><span class="string">]</span></span><br><span class="line"><span class="string">--示例</span></span><br><span class="line"><span class="string"> file_format:</span></span><br><span class="line"><span class="string">: SEQUENCEFILE</span></span><br><span class="line"><span class="string">| TEXTFILE    -- (Default, 这是hive默认的格式)</span></span><br><span class="line"><span class="string">| RCFILE      -- (Note: Available in Hive 0.6.0 and later)</span></span><br><span class="line"><span class="string">| ORC         -- (Note: Available in Hive 0.11.0 and later)</span></span><br><span class="line"><span class="string">| PARQUET     -- (Note: Available in Hive 0.13.0 and later)</span></span><br><span class="line"><span class="string">| AVRO        -- (Note: Available in Hive 0.14.0 and later)</span></span><br><span class="line"><span class="string">| JSONFILE    -- (Note: Available in Hive 4.0.0 and later)</span></span><br><span class="line"><span class="string"> --input_format_classname 是可以使用自定义的类，output_format_classname 也是同理</span></span><br><span class="line"><span class="string"> --比如create table student（id int,name, string ,age int）STORED AS INPUTFORMAT '</span>org.apache.hadoop.mappred.TextInputFormat<span class="string">' OUTPUTFORMAT '</span>org.apache.hadoop.mappred.TextInputFormat<span class="string">'</span></span><br><span class="line"><span class="string">| INPUTFORMAT input_format_classname OUTPUTFORMAT output_format_classname</span></span><br></pre></td></tr></table></figure>
+          
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+    </div>
+
+      
+        <p class="article-more-link">
+          <a href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/#more">more >></a>
         </p>
       
       <div class="clearfix"></div>
@@ -815,71 +944,10 @@
 
 
   
-    <article id="post-大数据学习之Azkaban安装部署" class="article article-type-post" itemscope itemprop="blogPost">
   
-    <div class="article-meta">
-      <a href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-date">
-      <time datetime="2018-02-18T01:45:48.000Z" itemprop="datePublished">2018-02-18</time>
-</a>
-
-
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/">大数据学习之Azkaban安装部署</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-          
-              <h1 id="Azkaban安装部署："><a href="#Azkaban安装部署：" class="headerlink" title="Azkaban安装部署："></a>Azkaban安装部署：</h1><h2 id="Azkaban安装模式"><a href="#Azkaban安装模式" class="headerlink" title="Azkaban安装模式"></a>Azkaban安装模式</h2><p>​        Azkaban 有三种部署方式：单服务模式、2个服务模式、分布式多服务模式</p>
-<h3 id="solo-server-model（单服务模式）"><a href="#solo-server-model（单服务模式）" class="headerlink" title="solo server model（单服务模式）"></a>solo server model（单服务模式）</h3><p>​        该模式中 webServer 和 executorServer 运行在同一个进程中，进程名是AzkabanSingleServer。可以使用自带的H2数据库或者配置mysql数据。该模式适用于小规模的使用。此模式合适个人试用使用。它也可以用在小规模的使用案例中。</p>
-          
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-
-      
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
-    </div>
-
-      
-        <p class="article-more-link">
-          <a href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-
-
-  
+    <nav id="page-nav">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
+    </nav>
   
 </div>
       <footer id="footer">
