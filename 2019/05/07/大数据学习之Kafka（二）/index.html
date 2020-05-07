@@ -15,31 +15,18 @@
 
 
 
-<meta name="description" content="MapReduce源码走读（下）​    上一篇文章留了一个比较重要的方法没有讲，writeSplits我们今天就继续跟进这部分源码。  ​">
+<meta name="description" content="Kafka中的ACK机制   参数值 解释 优缺点    0 producer发出消息即完成发送，不等待确认 延迟最小、可靠性最差，最容易丢失消息   1 当且仅当leader收到消息返回确认信号后认为发送成功 只有当leader crash，而且未被同步至其他follower时才丢消息   -1 只有当leader以及所有follower都收到消息确认后，才发送成功 最好的可靠性，延迟也较大。但">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MapReduce执行流程分析（下）">
-<meta property="og:url" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/index.html">
+<meta property="og:title" content="大数据学习之Kafka（二）">
+<meta property="og:url" content="http://yoursite.com/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
 <meta property="og:site_name" content="不会加血的牧师">
-<meta property="og:description" content="MapReduce源码走读（下）​    上一篇文章留了一个比较重要的方法没有讲，writeSplits我们今天就继续跟进这部分源码。  ​">
+<meta property="og:description" content="Kafka中的ACK机制   参数值 解释 优缺点    0 producer发出消息即完成发送，不等待确认 延迟最小、可靠性最差，最容易丢失消息   1 当且仅当leader收到消息返回确认信号后认为发送成功 只有当leader crash，而且未被同步至其他follower时才丢消息   -1 只有当leader以及所有follower都收到消息确认后，才发送成功 最好的可靠性，延迟也较大。但">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/writeSplits.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/writeNewSplits.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getInputFormatClass.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/TextInputFormat.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/InputFormat.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getSplits.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getSplits.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getMinSplitSize.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getMaxSplitSize.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplitSize.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplit.png">
-<meta property="og:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/Block.png">
-<meta property="article:published_time" content="2018-03-25T14:05:54.000Z">
-<meta property="article:modified_time" content="2020-02-14T13:45:58.282Z">
+<meta property="article:published_time" content="2019-05-07T04:40:37.000Z">
+<meta property="article:modified_time" content="2020-05-07T04:40:37.818Z">
 <meta property="article:author" content="不会加血的牧师">
-<meta property="article:tag" content="大数据">
+<meta property="article:tag" content="Kafka">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/writeSplits.png">
 
 <link rel="apple-touch-icon" href= "/apple-touch-icon.png">
 
@@ -73,7 +60,7 @@
 <link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
 
 
-<title>MapReduce执行流程分析（下） | 不会加血的牧师</title>
+<title>大数据学习之Kafka（二） | 不会加血的牧师</title>
 
 <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
 <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
@@ -277,11 +264,11 @@
     </div>
     <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
 </nav>
-      <div class="body-wrap"><article id="post-MapReduece源码走读（下）" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-大数据学习之Kafka（二）" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/" class="article-date">
-      <time datetime="2018-03-25T14:05:54.000Z" itemprop="datePublished">2018-03-25</time>
+      <a href="/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-date">
+      <time datetime="2019-05-07T04:40:37.000Z" itemprop="datePublished">2019-05-07</time>
 </a>
 
 
@@ -296,7 +283,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      MapReduce执行流程分析（下）
+      大数据学习之Kafka（二）
     </h1>
   
 
@@ -307,7 +294,7 @@
 
         
     <div class="article-tag tagcloud">
-        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li></ul>
     </div>
 
         <div class="clearfix"></div>
@@ -317,28 +304,53 @@
     <div class="article-entry" itemprop="articleBody">
       
           
-        <h2 id="MapReduce源码走读（下）"><a href="#MapReduce源码走读（下）" class="headerlink" title="MapReduce源码走读（下）"></a>MapReduce源码走读（下）</h2><p>​    上一篇文章留了一个比较重要的方法没有讲，<strong>writeSplits</strong>我们今天就继续跟进这部分源码。</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/writeSplits.png" alt="writeSplits"></p>
-<p>​    <a id="more"></a></p>
-<p>​    1、我们进入writeSplits。</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/writeNewSplits.png" alt="writeNewSplits"></p>
-<p>​    2、进来之后这里 一共有俩个API一个是新的，一个是旧的。用哪个API我也不知道，继续Debug模式跟他走看他用哪个。</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getInputFormatClass.png" alt="getInputFormatClass"></p>
-<p>​    3、这里显然是用的<strong>writeNewSplits</strong>新的API,这里先获取了配置信息，然后又new了 一个input，这个input其实就是我们前面设置的那个输入路径类型FileInputFormat类。但是这里显示的是TextInputFormat类型，我们不着急进<strong>TextInputFormat</strong>这里看看</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/TextInputFormat.png" alt="TextInputFormat"></p>
-<p>​    4、<strong>TextInputFormat</strong>这里是继承了<strong>FileInputFormate</strong>，并且里面只实现俩个方法。而且<strong>FileInputFormate</strong>是一个抽象类。<strong>TextInputFormat</strong>就是它的子类，现在的话我们回到代码里这时已经得到了一个<strong>InputFormat</strong>，我们在去看<strong>InputFormat</strong>。<img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/InputFormat.png" alt="InputFormat"></p>
-<p>​    5、这里<strong>InputFormat</strong>有一个K,V的泛型。这里其实就我们说的K1,V1输入类型。我们在写<strong>MapReduce</strong>程序的时候如果你想读数据，肯定是用<strong>InputFormate</strong>,不管读什么源头的数据都要用<strong>InputFormate</strong>，他也是抽象类。所以我们用的都是他们子类。</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getSplits.png" alt="getSplits"></p>
-<p>​    6、我们回到程序，现在到<strong>input.getSplit</strong>，这里开始获取文件的分片数量。这里返回是一个List是多个分片。还有这个有<strong>InputSplit</strong>类型，其实就是一个<strong>InputSplit</strong>会被一个<strong>Mapper</strong>处理，可以理解为<strong>Block</strong>。我们进到<strong>getSplits</strong>这个方法里面。</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getSplits.png" alt="getSplits"></p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getMinSplitSize.png" alt="getMinSplitSize"></p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/getMaxSplitSize.png" alt="getMaxSplitSize"></p>
-<p>​    7、进入<strong>getSplits</strong>方法，最终进入的还是<strong>FileInputFormate</strong>，我们前面的类型返回不是<strong>TextInputFormat</strong>吗，<strong>TextInputFormat</strong>里面只有俩个方法，最终调用的还是父类里的方法，我们看382行是求一个最小值<strong>getFormatMinSplitSize()</strong>返回的是1，有兴趣的自己点进去看一下。<strong>getMinSplitSize(job)</strong>这个方法是底层是去找<strong>*<u>SPLIT_MINSIZE</u>*</strong>这个参数找不到返回<strong>1L</strong>，这里最小值返回的是<strong>1</strong>.<strong>getMaxSplitSize</strong>这个方法去找<strong>*<u>SPLIT_MAXSIZE</u>*</strong>这个值，如果没有返回<u><strong>Long.MAX_VALUE</strong></u><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplitSize.png" alt="computeSplitSize"></p>
-<p>​    8、然后我们继续往下走到<strong>388</strong>行，这里先获取到了文件的大小，然后判断文件是不是可以切分的文件，又获取了<strong>bolck</strong>的大小，应该<strong>128M</strong>这里因为是本地运行所以是<strong>32M</strong>,服务器上就是<strong>128M</strong>。然后我们进入<strong>computeSplitSize</strong>这个方法里面</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/computeSplit.png" alt="computeSplit"></p>
-<p>​    9、这里<strong>minSize</strong>是<strong>1</strong>，后面<strong>maxSize</strong>是<strong>Long</strong>的最大值，<strong>blockSize</strong>是<strong>32M</strong>因为是本地运行，最小值那就是<strong>32M</strong>,然后求最大值就是<strong>32M</strong>了</p>
-<p><img src="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/Block.png" alt="Block"></p>
-<p> 10、我么返回回来，这部分代码就是精华了，<strong>((double) bytesRemaining)/splitSize &gt; SPLIT_SLOP</strong>中的 <strong>*<u>SPLIT_SLOP</u>*</strong> 这个参数的值是<strong>1.1</strong>,预留了百分之<strong>10</strong>阈值。比如一个文件是<strong>130M</strong>个<strong>Block</strong>是<strong>2</strong>个，这里被<strong>MapReduce</strong>处理了这个地方的切片就是一个了，留了百分之<strong>10</strong>的阈值。如果说没有这个<strong>1.1</strong>参数一个块大小是<strong>129M</strong>，这个时候会有俩个<strong>Mapper</strong>去处理，一个是处理<strong>128M</strong>，一个处理<strong>1M</strong>。这样的无形之中又造成了浪费资源。留出百分之<strong>10</strong>的阈值，这样<strong>129M</strong>的数据还是会被一个<strong>Mapper</strong>去处理的。代码<strong>405</strong>行到<strong>410</strong>行，这里就是循环进行切片，<strong>412</strong>行到<strong>417</strong>行，就是处理剩下最后一个不到<strong>128M</strong>的块大小。到这里<strong>writeSplits</strong>最主要的部分就结束，阅读源码的时候还是要<strong>Debug</strong>跟进一起去看理解才能更深刻，如果不<strong>Debug</strong>的话看源码也是白看，因为你根本不知道程序走的哪里。</p>
+        <h1 id="Kafka中的ACK机制"><a href="#Kafka中的ACK机制" class="headerlink" title="Kafka中的ACK机制"></a>Kafka中的ACK机制</h1><table>
+<thead>
+<tr>
+<th>参数值</th>
+<th>解释</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>producer发出消息即完成发送，不等待确认</td>
+<td>延迟最小、可靠性最差，最容易丢失消息</td>
+</tr>
+<tr>
+<td>1</td>
+<td>当且仅当leader收到消息返回确认信号后认为发送成功</td>
+<td>只有当leader crash，而且未被同步至其他follower时才丢消息</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>只有当leader以及所有follower都收到消息确认后，才发送成功</td>
+<td>最好的可靠性，延迟也较大。但是还是有可能丢消息</td>
+</tr>
+</tbody></table>
+<a id="more"></a>
+
+<h1 id="Kafka交付语义"><a href="#Kafka交付语义" class="headerlink" title="Kafka交付语义"></a>Kafka交付语义</h1><p>​    Kafka中有三种消息交付语义，分别是:<br>​        At most once—Messages may be lost but are never redelivered.   最多一次<br>​        At least once—Messages are never lost but may be redelivered.  至少一次<br>​        Exactly once—this is what people actually want, each message is delivered once and only onc  精准一次<br>​    Kafka的语义其实是分为了俩个部分，一个是发布消息，一个是消费消息。从0.11.0.0开始，producer引入了幂等性的概念，保证消息只会被传递一次。</p>
+<h2 id="producer生产者"><a href="#producer生产者" class="headerlink" title="producer生产者"></a>producer生产者</h2><h3 id="At-least-once传递语义"><a href="#At-least-once传递语义" class="headerlink" title="At-least-once传递语义"></a>At-least-once传递语义</h3><p>​        从Producer的角度来看，<strong>At most once意味着Producer发送完一条消息后，不会确认消息是否成功送达</strong>。这样从Producer的角度来看，消息仅仅被发送一次，也就存在者丢失的可能性。</p>
+<h3 id="A-most-once传递语义"><a href="#A-most-once传递语义" class="headerlink" title="A-most-once传递语义"></a>A-most-once传递语义</h3><p>​        从Producer的角度来看，<strong>At least once意味着Producer发送完一条消息后，会确认消息是否发送成功。如果Producer没有收到Broker的ack确认消息，那么会不断重试发送消息</strong>。这样就意味着消息可能被发送不止一次，也就存在这消息重复的可能性。</p>
+<h3 id="Exactly-once传递语义"><a href="#Exactly-once传递语义" class="headerlink" title="Exactly-once传递语义"></a>Exactly-once传递语义</h3><p>​        从Producer的角度来看，<strong>Exactly once意味着Producer消息的发送是幂等的</strong>。这意味着不论消息重发多少遍，最终Broker上记录的只有一条不重复的数据<br>​        自0.11.0.0起，Kafka Producer支持幂等传递选项，保证重新发送不会导致在日志中出现重复项。为了实现这个目的，broker为每个Producer分配一个ID，并通过每个消息的序列号来进行去。<br>​        设置enable.idempotence=true</p>
+<h2 id="cousumer消费者"><a href="#cousumer消费者" class="headerlink" title="cousumer消费者"></a>cousumer消费者</h2><p>​    我们在项目中一般都是采用SparkStreaming+Kafka框架，有些业务数据，我们要必须保证数据的一致性，就是Exactly-once传递语义。这个时候就我们要维护offset，我分为一下几种情况如何维护offset：</p>
+<h3 id="Checkpoints"><a href="#Checkpoints" class="headerlink" title="Checkpoints"></a>Checkpoints</h3><p>​        Checkpointsy一般是维护在hdfs上，这样会带来一系列的问题，会产生大量的小文件。学习可以使用，但是工作不推荐</p>
+<h3 id="Kafka-itself"><a href="#Kafka-itself" class="headerlink" title="Kafka itself"></a>Kafka itself</h3><p>​        Kafka itself是维护在Kafka中topic，这种消费语义是At-least-once，可能会造成数据重复。自身维护又分成俩种情况，一是自动提交，一个手动提交。自动提交默认5秒提交一次。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"enable.auto.commit"</span> -&gt; (<span class="literal">false</span>: java.lang.Boolean)	<span class="comment">#手动提交</span></span><br><span class="line"><span class="string">"enable.auto.commit"</span> -&gt; (<span class="literal">true</span>: java.lang.Boolean)	<span class="comment">#自动提交</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="外部存储"><a href="#外部存储" class="headerlink" title="外部存储"></a>外部存储</h3><p>​        这种情况，一般维护Redis，Zookeeper，HBase等等。这种是为了实现精准一次消费，不过这种方式实现方式比较麻烦，代码非常复杂，还需要额外的存储服务。</p>
+<h3 id="cousumer的Exactly-once语义"><a href="#cousumer的Exactly-once语义" class="headerlink" title="cousumer的Exactly-once语义"></a>cousumer的Exactly-once语义</h3><p>​        cousumer如果使用外部存储，是比较难做到Exactly-once精准一次消费的。代码部分比较难实现事务的，如果offset跟业务数据是同时维护在同一个场景，比如都维护Redis中。这样是可以用事务来实现精准一次消费的。 但是如果offset跟业务数据不再同一个场景下，这个时候就没有办法使用事务。这也没有事务的回滚机制，就比如offset已经提交，但是数据库更新业务数据出错。这个就比较致命了！<br>​        如果想解决这个问题，就要好好考虑如何设计你的offset跟你的业务数据完美的结合了，一次输出保证数据跟offset二者同时更新，或者二者同时不更新。<br>​        举例：主键含有offset的值,就相同主键数据就会存在多条；反之offset不设置为主键字段，仅仅作为数据的补充部分，那么数据不会重复。<br>​        还有就是，在设计下游业务数库的时候，最好可以使用语法类似HBase put的语法，如果数据存在就更新，如果不存在我们就插入数据。</p>
+<h1 id="Kafka案例"><a href="#Kafka案例" class="headerlink" title="Kafka案例"></a>Kafka案例</h1><h2 id="案例一-Kafka消费的一致性"><a href="#案例一-Kafka消费的一致性" class="headerlink" title="案例一 Kafka消费的一致性"></a>案例一 Kafka消费的一致性</h2><p>​    我们都知道Kafka是存在分区的概念的，分区中的元素是有序的，但是Kafka在消费的时候是无序。因为要从每个分区读取消息，即使写入数据有序，但是消费的时候是乱序。如：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#创建生产者</span></span><br><span class="line">kafka-console-producer.sh --broker-list hadoop001:9092,hadoop002:9092,hadoop003:9092 --topic text_topic </span><br><span class="line">&gt;1</span><br><span class="line">&gt;2</span><br><span class="line">&gt;3</span><br><span class="line">&gt;4</span><br><span class="line">&gt;5</span><br><span class="line">&gt;6</span><br><span class="line">&gt;7</span><br><span class="line">&gt;8</span><br><span class="line">&gt;9</span><br></pre></td></tr></table></figure>
+
+<p>​    创建消费者</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[hadoop@hadoop002 ~]$ kafka-console-consumer.sh \</span><br><span class="line">&gt; --bootstrap-server hadoop001:9092,hadoop002:9092,hadoop003:9092 \</span><br><span class="line">&gt; --topic text_topic \</span><br><span class="line">&gt; --from-beginning </span><br><span class="line">1</span><br><span class="line">4</span><br><span class="line">7</span><br><span class="line"><span class="comment">#上面一组一个分区</span></span><br><span class="line">2</span><br><span class="line">5</span><br><span class="line">8</span><br><span class="line"><span class="comment">#上面一组一个分区</span></span><br><span class="line">3</span><br><span class="line">6</span><br><span class="line">9</span><br><span class="line"><span class="comment">#上面一组一个分区</span></span><br></pre></td></tr></table></figure>
+
+<p>​    因为数据写入到了不同的分区中，Kafka在消费的时候是乱序。如何解决这个问题呢?<br>​    Kafka的分区是每一个分区间是有序的，我们可以利用这个办法，但是不能只设置一个分区，这种办法虽然可以消费有序，但是浪费了Kafka高吞吐的性能，得不偿失。<br>​    其实解决这个问题，我们可以把需要保证消费有序的数据发送到同一个partition中，因为Kafka每一个分区的数据是有序的。send在发送的时候都默认是null的，我们可以指定send(key,value)。发送到同一个分区中。设置参数(针对MySQL,Maxwell)</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">producer_partition_by=primary_key 参数</span><br><span class="line">PARTITION_BY: [ database | table | primary_key | transaction_id | column | random ]</span><br><span class="line">max.in.flight.requests.per.connection =5</span><br></pre></td></tr></table></figure>
+
+<p>​    还有一种业务场景，就是分组排序。使用时间戳，比如SQL啊，不过要根据具体的业务场景具体做解决方案。</p>
 
       
     </div>
@@ -347,13 +359,13 @@
   
     
     <div class="copyright">
-        <p><span>本文标题:</span><a href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></p>
+        <p><span>本文标题:</span><a href="/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/">大数据学习之Kafka（二）</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
-        <p><span>发布时间:</span>2018-03-25, 22:05:54</p>
-        <p><span>最后更新:</span>2020-02-14, 21:45:58</p>
+        <p><span>发布时间:</span>2019-05-07, 12:40:37</p>
+        <p><span>最后更新:</span>2020-05-07, 12:40:37</p>
         <p>
-            <span>原始链接:</span><a class="post-url" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/" title="MapReduce执行流程分析（下）">http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/</a>
-            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <span>原始链接:</span><a class="post-url" href="/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/" title="大数据学习之Kafka（二）">http://yoursite.com/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
             <script> var clipboard = new Clipboard('.copy-path'); </script>
         </p>
         <p>
@@ -366,15 +378,15 @@
     <nav id="article-nav">
         
             <div id="article-nav-newer" class="article-nav-title">
-                <a href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">
-                    MapJoin跟ReduceJoin
+                <a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">
+                    大数据学习-Flume的基础使用
                 </a>
             </div>
         
         
             <div id="article-nav-older" class="article-nav-title">
-                <a href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/">
-                    大数据学习之Hadoop源码编译支持snappy压缩
+                <a href="/2018/05/06/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka/">
+                    大数据学习之Kafka（一）
                 </a>
             </div>
         
@@ -386,7 +398,7 @@
     <div id="toc" class="toc-article">
         <strong class="toc-title">文章目录</strong>
         
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#MapReduce源码走读（下）"><span class="toc-number">1.</span> <span class="toc-text">MapReduce源码走读（下）</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Kafka中的ACK机制"><span class="toc-number">1.</span> <span class="toc-text">Kafka中的ACK机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Kafka交付语义"><span class="toc-number">2.</span> <span class="toc-text">Kafka交付语义</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#producer生产者"><span class="toc-number">2.1.</span> <span class="toc-text">producer生产者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#At-least-once传递语义"><span class="toc-number">2.1.1.</span> <span class="toc-text">At-least-once传递语义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#A-most-once传递语义"><span class="toc-number">2.1.2.</span> <span class="toc-text">A-most-once传递语义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Exactly-once传递语义"><span class="toc-number">2.1.3.</span> <span class="toc-text">Exactly-once传递语义</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#cousumer消费者"><span class="toc-number">2.2.</span> <span class="toc-text">cousumer消费者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Checkpoints"><span class="toc-number">2.2.1.</span> <span class="toc-text">Checkpoints</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Kafka-itself"><span class="toc-number">2.2.2.</span> <span class="toc-text">Kafka itself</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#外部存储"><span class="toc-number">2.2.3.</span> <span class="toc-text">外部存储</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cousumer的Exactly-once语义"><span class="toc-number">2.2.4.</span> <span class="toc-text">cousumer的Exactly-once语义</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Kafka案例"><span class="toc-number">3.</span> <span class="toc-text">Kafka案例</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#案例一-Kafka消费的一致性"><span class="toc-number">3.1.</span> <span class="toc-text">案例一 Kafka消费的一致性</span></a></li></ol></li></ol>
         
     </div>
     <style>
@@ -422,7 +434,7 @@
         </div>
         <script>
             window._bd_share_config={
-                "common":{"bdSnsKey":{},"bdText":"MapReduce执行流程分析（下）　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+                "common":{"bdSnsKey":{},"bdText":"大数据学习之Kafka（二）　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
         </script>
     
 
@@ -442,7 +454,7 @@
 
     <div class="scroll" id="post-nav-button">
         
-            <a href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/" title="上一篇: MapJoin跟ReduceJoin">
+            <a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/" title="上一篇: 大数据学习-Flume的基础使用">
                 <i class="fa fa-angle-left"></i>
             </a>
         
@@ -450,7 +462,7 @@
         <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
 
         
-            <a href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/" title="下一篇: 大数据学习之Hadoop源码编译支持snappy压缩">
+            <a href="/2018/05/06/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka/" title="下一篇: 大数据学习之Kafka（一）">
                 <i class="fa fa-angle-right"></i>
             </a>
         
