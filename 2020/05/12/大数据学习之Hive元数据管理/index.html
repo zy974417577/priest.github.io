@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="不会加血的牧师" />
+
+
+
+<meta name="description" content="Hive元数据表存储Hive版本的元数据表VERSION表   Field Type Null Key 字段说明    VER_ID bigint(20) NO PRI ID主键   SCHEMA_VERSION varchar(127) NO  Hive版本   SCHEMA_VERSION_V2 varchar(255) YES     VERSION_COMMENT varchar(255)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大数据学习之Hive元数据管理">
+<meta property="og:url" content="http://yoursite.com/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="不会加血的牧师">
+<meta property="og:description" content="Hive元数据表存储Hive版本的元数据表VERSION表   Field Type Null Key 字段说明    VER_ID bigint(20) NO PRI ID主键   SCHEMA_VERSION varchar(127) NO  Hive版本   SCHEMA_VERSION_V2 varchar(255) YES     VERSION_COMMENT varchar(255)">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-12T06:43:20.000Z">
+<meta property="article:modified_time" content="2020-05-12T10:22:38.413Z">
+<meta property="article:author" content="不会加血的牧师">
+<meta property="article:tag" content="Hive">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="不会加血的牧师" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>大数据学习之Hive元数据管理 | 不会加血的牧师</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">不会加血的牧师</a></h1>
+        </hgroup>
+
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                        <div class="icon-wrap icon-me hide" data-idx="3">
+                            <div class="user"></div>
+                            <div class="shoulder"></div>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                        <li>关于我</li>
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" target="_blank" rel="noopener" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" href="https://github.com/zy974417577" target="_blank" rel="noopener" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" href="https://space.bilibili.com/7907653" target="_blank" rel="noopener" title="bilibili"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="tag">环境搭建</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://hexo.io" target="_blank" rel="noopener">Hexo</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="https://pages.github.com/" target="_blank" rel="noopener">GitHub</a>
+                    
+                      <a class="main-nav-link switch-friends-link" href="http://moxfive.xyz/" target="_blank" rel="noopener">MOxFIVE</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+                
+                <section class="switch-part switch-part4">
+                
+                    <div id="js-aboutme">专注于前端</div>
+                </section>
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">不会加血的牧师</a></h1>
+            </hgroup>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:helloworld_zy@163.com" title="Email"></a>
+                            
+                                <a class="fa 新浪微博" target="_blank" href="https://weibo.com/6159800044/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1" title="新浪微博"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/zy974417577" title="GitHub"></a>
+                            
+                                <a class="fa bilibili" target="_blank" href="https://space.bilibili.com/7907653" title="bilibili"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-大数据学习之Hive元数据管理" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/" class="article-date">
+      <time datetime="2020-05-12T06:43:20.000Z" itemprop="datePublished">2020-05-12</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      大数据学习之Hive元数据管理
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h1 id="Hive元数据表"><a href="#Hive元数据表" class="headerlink" title="Hive元数据表"></a>Hive元数据表</h1><h2 id="存储Hive版本的元数据表"><a href="#存储Hive版本的元数据表" class="headerlink" title="存储Hive版本的元数据表"></a>存储Hive版本的元数据表</h2><h3 id="VERSION表"><a href="#VERSION表" class="headerlink" title="VERSION表"></a>VERSION表</h3><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VER_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>ID主键</td>
+</tr>
+<tr>
+<td>SCHEMA_VERSION</td>
+<td>varchar(127)</td>
+<td>NO</td>
+<td></td>
+<td>Hive版本</td>
+</tr>
+<tr>
+<td>SCHEMA_VERSION_V2</td>
+<td>varchar(255)</td>
+<td>YES</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>VERSION_COMMENT</td>
+<td>varchar(255)</td>
+<td>NO</td>
+<td></td>
+<td>版本说明</td>
+</tr>
+</tbody></table>
+<p>这个表比较简单，就是一张version表，但是如果这张表出现问题，是不能进入Hive-Cli.</p>
+<a id="more"></a>
+
+<h3 id="DBS表"><a href="#DBS表" class="headerlink" title="DBS表"></a>DBS表</h3><p>BDS表数据，该表存储Hive中所有数据库的基本信息。</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DB_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>数据库ID</td>
+</tr>
+<tr>
+<td>DESC</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>数据库描述</td>
+</tr>
+<tr>
+<td>DB_LOCATION_URI</td>
+<td>varchar(4000)</td>
+<td>NO</td>
+<td></td>
+<td>数据库HDFS路径</td>
+</tr>
+<tr>
+<td>NAME</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td>UNI</td>
+<td>数据库名</td>
+</tr>
+<tr>
+<td>OWNER_NAME</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>数据库所有者用户名</td>
+</tr>
+<tr>
+<td>OWNER_TYPE</td>
+<td>varchar(10)</td>
+<td>YES</td>
+<td></td>
+<td>所有者角色</td>
+</tr>
+</tbody></table>
+<h3 id="DATABASE-PARAMS表"><a href="#DATABASE-PARAMS表" class="headerlink" title="DATABASE_PARAMS表"></a>DATABASE_PARAMS表</h3><p>DATABASE_PARAMS该表存储数据库的相关参数，在CREATE DATABASE时候用WITH DBPROPERTIES (property_name=property_value, …)指定的参数。<strong>DBS和DATABASE_PARAMS这两张表通过DB_ID字段关联</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DB_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>数据库ID</td>
+</tr>
+<tr>
+<td>PARAM_KEY</td>
+<td>varchar(180)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>参数名</td>
+</tr>
+<tr>
+<td>PARAM_VALUE</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>参数值</td>
+</tr>
+</tbody></table>
+<h2 id="Hive表和视图相关的元数据表"><a href="#Hive表和视图相关的元数据表" class="headerlink" title="Hive表和视图相关的元数据表"></a>Hive表和视图相关的元数据表</h2><p>主要的表有以下几张主TBLS、TABLE_PARAMS、TBL_PRIVS，并且这三张表通过TBL_ID关联。</p>
+<h3 id="TBLS表"><a href="#TBLS表" class="headerlink" title="TBLS表"></a>TBLS表</h3><p>​    TBLS:该表中存储Hive表，视图，索引表的基本信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TBL_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>表ID</td>
+</tr>
+<tr>
+<td>CREATE_TIME</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>DB_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>数据库ID</td>
+</tr>
+<tr>
+<td>LAST_ACCESS_TIME</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>上次访问时间</td>
+</tr>
+<tr>
+<td>OWNER</td>
+<td>varchar(767)</td>
+<td>YES</td>
+<td></td>
+<td>所有者</td>
+</tr>
+<tr>
+<td>OWNER_TYPE</td>
+<td>varchar(10)</td>
+<td>YES</td>
+<td></td>
+<td>所有者类型</td>
+</tr>
+<tr>
+<td>RETENTION</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>保留字段</td>
+</tr>
+<tr>
+<td>SD_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>序列化配置信息</td>
+</tr>
+<tr>
+<td>TBL_NAME</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>表名</td>
+</tr>
+<tr>
+<td>TBL_TYPE</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>表类型</td>
+</tr>
+<tr>
+<td>VIEW_EXPANDED_TEXT</td>
+<td>mediumtext</td>
+<td>YES</td>
+<td></td>
+<td>视图的详细HQL语句</td>
+</tr>
+<tr>
+<td>VIEW_ORIGINAL_TEXT</td>
+<td>mediumtext</td>
+<td>YES</td>
+<td></td>
+<td>视图的原始HQL语句</td>
+</tr>
+</tbody></table>
+<h3 id="TABLE-PARAMS表"><a href="#TABLE-PARAMS表" class="headerlink" title="TABLE_PARAMS表"></a>TABLE_PARAMS表</h3><p>TABLE_PARAMS:该表存储表/视图的属性信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TBL_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>表ID</td>
+</tr>
+<tr>
+<td>PARAM_KEY</td>
+<td>varchar(256)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>属性名</td>
+</tr>
+<tr>
+<td>PARAM_VALUE</td>
+<td>varchar(32672)</td>
+<td>YES</td>
+<td></td>
+<td>属性值</td>
+</tr>
+</tbody></table>
+<h3 id="TBL-PRIVS表"><a href="#TBL-PRIVS表" class="headerlink" title="TBL_PRIVS表"></a>TBL_PRIVS表</h3><p>TBL_PRIVS：该表存储表/视图的授权信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TBL_GRANT_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>授权ID</td>
+</tr>
+<tr>
+<td>CREATE_TIME</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>授权时间</td>
+</tr>
+<tr>
+<td>GRANT_OPTION</td>
+<td>smallint(6)</td>
+<td>NO</td>
+<td></td>
+<td>授权选项</td>
+</tr>
+<tr>
+<td>GRANTOR</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>授权执行用户</td>
+</tr>
+<tr>
+<td>GRANTOR_TYPE</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>授权者类型</td>
+</tr>
+<tr>
+<td>PRINCIPAL_NAME</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>被授权用户</td>
+</tr>
+<tr>
+<td>PRINCIPAL_TYPE</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>被授权用户类型</td>
+</tr>
+<tr>
+<td>TBL_PRIV</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>权限</td>
+</tr>
+<tr>
+<td>TBL_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>PRI</td>
+<td>表ID</td>
+</tr>
+</tbody></table>
+<h2 id="Hive文件存储信息相关的元数据表"><a href="#Hive文件存储信息相关的元数据表" class="headerlink" title="Hive文件存储信息相关的元数据表"></a>Hive文件存储信息相关的元数据表</h2><p>主要涉及SDS、SD_PARAMS、SERDES、SERDE_PARAMS，由于HDFS支持的文件格式很多，而建Hive表时候也可以指定各种文件格式，Hive在将HQL解析成MapReduce时候，需要知道去哪里，使用哪种格式去读写HDFS文件，而这些信息就保存在这几张表中</p>
+<h3 id="SDS-表"><a href="#SDS-表" class="headerlink" title="SDS    表"></a>SDS    表</h3><p>该表保存文件存储的基本信息，如INPUT_FORMAT、OUTPUT_FORMAT、是否压缩等。TBLS表中的SD_ID与该表关联，可以获取Hive表的存储信息。</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SD_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>存储信息ID</td>
+</tr>
+<tr>
+<td>CD_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>字段信息ID</td>
+</tr>
+<tr>
+<td>INPUT_FORMAT</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>文件输入格式</td>
+</tr>
+<tr>
+<td>IS_COMPRESSED</td>
+<td>bit(1)</td>
+<td>NO</td>
+<td></td>
+<td>是否压缩</td>
+</tr>
+<tr>
+<td>IS_STOREDASSUBDIRECTORIES</td>
+<td>bit(1)</td>
+<td>NO</td>
+<td></td>
+<td>是否以子目录存储</td>
+</tr>
+<tr>
+<td>LOCATION</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>HDFS路径</td>
+</tr>
+<tr>
+<td>NUM_BUCKETS</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>分桶数量</td>
+</tr>
+<tr>
+<td>OUTPUT_FORMAT</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>文件输出格式</td>
+</tr>
+<tr>
+<td>SERDE_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>文件输出格式</td>
+</tr>
+</tbody></table>
+<h3 id="SD-PARAMS表"><a href="#SD-PARAMS表" class="headerlink" title="SD_PARAMS表"></a>SD_PARAMS表</h3><p>SD_PARAMS: 该表存储Hive存储的属性信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SD_PARAMS</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>存储配置ID</td>
+</tr>
+<tr>
+<td>PARAM_KEY</td>
+<td>varchar(256)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>存储属性名</td>
+</tr>
+<tr>
+<td>PARAM_VALUE</td>
+<td>varchar(32672)</td>
+<td>YES</td>
+<td></td>
+<td>存储属性值</td>
+</tr>
+</tbody></table>
+<h3 id="SERDES表"><a href="#SERDES表" class="headerlink" title="SERDES表"></a>SERDES表</h3><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SERDE_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>序列化类配置ID</td>
+</tr>
+<tr>
+<td>NAME</td>
+<td>varchar(128)</td>
+<td>YES</td>
+<td></td>
+<td>属性名</td>
+</tr>
+<tr>
+<td>SLIB</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>属性值</td>
+</tr>
+</tbody></table>
+<h2 id="Hive表字段相关的元数据表"><a href="#Hive表字段相关的元数据表" class="headerlink" title="Hive表字段相关的元数据表"></a>Hive表字段相关的元数据表</h2><h3 id="COLUMNS-V2表"><a href="#COLUMNS-V2表" class="headerlink" title="COLUMNS_V2表"></a>COLUMNS_V2表</h3><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CD_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>字段信息ID</td>
+</tr>
+<tr>
+<td>COMMENT</td>
+<td>varchar(256)</td>
+<td>YES</td>
+<td></td>
+<td>字段注释</td>
+</tr>
+<tr>
+<td>COLUMN_NAME</td>
+<td>varchar(128)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>字段名</td>
+</tr>
+<tr>
+<td>TYPE_NAME</td>
+<td>varchar(128)</td>
+<td>NO</td>
+<td></td>
+<td>字段类型</td>
+</tr>
+<tr>
+<td>INTEGER_IDX</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>字段顺序</td>
+</tr>
+</tbody></table>
+<h2 id="Hive表分分区相关的元数据表"><a href="#Hive表分分区相关的元数据表" class="headerlink" title="Hive表分分区相关的元数据表"></a>Hive表分分区相关的元数据表</h2><p>主要涉及PARTITIONS、PARTITION_KEYS、PARTITION_KEY_VALS、PARTITION_PARAMS</p>
+<h3 id="PARTITIONS表"><a href="#PARTITIONS表" class="headerlink" title="PARTITIONS表"></a>PARTITIONS表</h3><p>PARTITIONS:该表存储表分区的基本信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PART_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>分区ID</td>
+</tr>
+<tr>
+<td>CREATE_TIME</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>分区创建时间</td>
+</tr>
+<tr>
+<td>LAST_ACCESS_TIME</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>最后一次访问时间</td>
+</tr>
+<tr>
+<td>PART_NAME</td>
+<td>varchar(767)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>分区名</td>
+</tr>
+<tr>
+<td>SD_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>分区存储ID</td>
+</tr>
+<tr>
+<td>TBL_ID</td>
+<td>bigint(20)</td>
+<td>YES</td>
+<td>MUL</td>
+<td>表ID</td>
+</tr>
+</tbody></table>
+<h3 id="PARTITION-KEYS表"><a href="#PARTITION-KEYS表" class="headerlink" title="PARTITION_KEYS表"></a>PARTITION_KEYS表</h3><p>PARTITION_KEYS:该表存储分区的字段信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TBL_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>PRI</td>
+</tr>
+<tr>
+<td>PKEY_COMMENT</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>分区字段说明</td>
+</tr>
+<tr>
+<td>PKEY_NAME</td>
+<td>varchar(128)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>分区字段名</td>
+</tr>
+<tr>
+<td>PKEY_TYPE</td>
+<td>varchar(767)</td>
+<td>NO</td>
+<td></td>
+<td>分区字段类型</td>
+</tr>
+<tr>
+<td>INTEGER_IDX</td>
+<td>int(11)</td>
+<td>NO</td>
+<td></td>
+<td>分区字段顺序</td>
+</tr>
+</tbody></table>
+<h3 id="PARTITION-KEY-VALS表"><a href="#PARTITION-KEY-VALS表" class="headerlink" title="PARTITION_KEY_VALS表"></a>PARTITION_KEY_VALS表</h3><p>PARTITION_KEY_VALS:该表存储分区字段值</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PART_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>分区ID</td>
+</tr>
+<tr>
+<td>PART_KEY_VAL</td>
+<td>varchar(255)</td>
+<td>YES</td>
+<td></td>
+<td>分区字段值</td>
+</tr>
+<tr>
+<td>INTEGER_IDX</td>
+<td>int(11)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>分区字段值顺序</td>
+</tr>
+</tbody></table>
+<h3 id="PARTITION-PARAMS表"><a href="#PARTITION-PARAMS表" class="headerlink" title="PARTITION_PARAMS表"></a>PARTITION_PARAMS表</h3><p>PARTITION_PARAMS:该表存储分区的属性信息</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Null</th>
+<th>Key</th>
+<th>字段说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PART_ID</td>
+<td>bigint(20)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>分区ID</td>
+</tr>
+<tr>
+<td>PARAM_KEY</td>
+<td>varchar(256)</td>
+<td>NO</td>
+<td>PRI</td>
+<td>分区属性名</td>
+</tr>
+<tr>
+<td>PARAM_VALUE</td>
+<td>varchar(4000)</td>
+<td>YES</td>
+<td></td>
+<td>分区属性值</td>
+</tr>
+</tbody></table>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/">大数据学习之Hive元数据管理</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">不会加血的牧师</a></p>
+        <p><span>发布时间:</span>2020-05-12, 14:43:20</p>
+        <p><span>最后更新:</span>2020-05-12, 18:22:38</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/" title="大数据学习之Hive元数据管理">http://yoursite.com/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/</a>
+            <span class="copy-path" data-clipboard-text="原文: http://yoursite.com/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/　　作者: 不会加血的牧师" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license noopener" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%80)/">
+                    大数据学习之Spark源码分析（一）
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">
+                    大数据学习-Flume的基础使用
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Hive元数据表"><span class="toc-number">1.</span> <span class="toc-text">Hive元数据表</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#存储Hive版本的元数据表"><span class="toc-number">1.1.</span> <span class="toc-text">存储Hive版本的元数据表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#VERSION表"><span class="toc-number">1.1.1.</span> <span class="toc-text">VERSION表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DBS表"><span class="toc-number">1.1.2.</span> <span class="toc-text">DBS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DATABASE-PARAMS表"><span class="toc-number">1.1.3.</span> <span class="toc-text">DATABASE_PARAMS表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hive表和视图相关的元数据表"><span class="toc-number">1.2.</span> <span class="toc-text">Hive表和视图相关的元数据表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TBLS表"><span class="toc-number">1.2.1.</span> <span class="toc-text">TBLS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TABLE-PARAMS表"><span class="toc-number">1.2.2.</span> <span class="toc-text">TABLE_PARAMS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TBL-PRIVS表"><span class="toc-number">1.2.3.</span> <span class="toc-text">TBL_PRIVS表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hive文件存储信息相关的元数据表"><span class="toc-number">1.3.</span> <span class="toc-text">Hive文件存储信息相关的元数据表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SDS-表"><span class="toc-number">1.3.1.</span> <span class="toc-text">SDS    表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SD-PARAMS表"><span class="toc-number">1.3.2.</span> <span class="toc-text">SD_PARAMS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SERDES表"><span class="toc-number">1.3.3.</span> <span class="toc-text">SERDES表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hive表字段相关的元数据表"><span class="toc-number">1.4.</span> <span class="toc-text">Hive表字段相关的元数据表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#COLUMNS-V2表"><span class="toc-number">1.4.1.</span> <span class="toc-text">COLUMNS_V2表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hive表分分区相关的元数据表"><span class="toc-number">1.5.</span> <span class="toc-text">Hive表分分区相关的元数据表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#PARTITIONS表"><span class="toc-number">1.5.1.</span> <span class="toc-text">PARTITIONS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PARTITION-KEYS表"><span class="toc-number">1.5.2.</span> <span class="toc-text">PARTITION_KEYS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PARTITION-KEY-VALS表"><span class="toc-number">1.5.3.</span> <span class="toc-text">PARTITION_KEY_VALS表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PARTITION-PARAMS表"><span class="toc-number">1.5.4.</span> <span class="toc-text">PARTITION_PARAMS表</span></a></li></ol></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"大数据学习之Hive元数据管理　| 不会加血的牧师　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%80)/" title="上一篇: 大数据学习之Spark源码分析（一）">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/" title="下一篇: 大数据学习-Flume的基础使用">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%80)/">大数据学习之Spark源码分析（一）</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/05/12/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHive%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86/">大数据学习之Hive元数据管理</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/02/17/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0-Flume%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8/">大数据学习-Flume的基础使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/05/07/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka%EF%BC%88%E4%BA%8C%EF%BC%89/">大数据学习之Kafka（二）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/06/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BKafka/">大数据学习之Kafka（一）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/13/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B0%83%E8%AF%95Hive%E6%BA%90%E7%A0%81/">大数据学习之调试Hive源码</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/">大数据学习之StorageFormat</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/02/MapJoin%E8%B7%9FReduceJoin/">MapJoin跟ReduceJoin</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/25/MapReduece%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8B%EF%BC%89/">MapReduce执行流程分析（下）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/22/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E6%94%AF%E6%8C%81snappy%E5%8E%8B%E7%BC%A9/">大数据学习之Hadoop源码编译支持snappy压缩</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/17/MapReduce%E7%9A%84%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%88%E4%B8%8A%EF%BC%89/">MapReduce执行流程分析（上）</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BHadoopHA%E9%83%A8%E7%BD%B2/">大数据学习之HadoopHA部署</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/16/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E7%AE%97%E5%AD%90Transformation/">大数据学习之Spark算子Transformation</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/02/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BAzkaban%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/">大数据学习之Azkaban安装部署</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2016-2020 不会加血的牧师
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 6;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+             socail: ".social a" 
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+    <script>
+        var originTitle = document.title;
+        var titleTime;
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                document.title = "(つェ⊂) 我藏好了哦~ " + originTitle;
+                clearTimeout(titleTime);
+            }
+            else {
+                document.title = "(*´∇｀*) 被你发现啦~ " + originTitle;
+                titleTime = setTimeout(function() {
+                    document.title = originTitle;
+                }, 2000);
+            }
+        })
+    </script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
