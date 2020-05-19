@@ -405,6 +405,135 @@
 
 
   
+    <article id="post-大数据学习之Spark源码分析（三）" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/05/19/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%89%EF%BC%89/" class="article-date">
+      <time datetime="2020-05-19T07:18:58.000Z" itemprop="datePublished">2020-05-19</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/05/19/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%89%EF%BC%89/">大数据学习之Spark源码分析（三）</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+              <h1 id="Spark程序源码走读"><a href="#Spark程序源码走读" class="headerlink" title="Spark程序源码走读"></a>Spark程序源码走读</h1><p>​    上个篇章我们看了sparkContext的源码，接下来我们看代码部分的阅读。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.ruozedata.bigdata</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.spark.rdd.<span class="type">RDD</span></span><br><span class="line"><span class="keyword">import</span> org.apache.spark.&#123;<span class="type">SparkConf</span>, <span class="type">SparkContext</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">RDDApp01</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</span><br><span class="line">      .setMaster(<span class="string">"local[*]"</span>)</span><br><span class="line">      .setAppName(<span class="string">"RDDApp01"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> rdd: <span class="type">RDD</span>[<span class="type">Int</span>] = sc.parallelize(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">14</span>,<span class="number">5</span>,<span class="number">1</span>,<span class="number">2</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> reduceRDD = rdd.map(x =&gt; (x, <span class="number">1</span>)).reduceByKey(_ + _)</span><br><span class="line"></span><br><span class="line">    reduceRDD.collect()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li></ul>
+    </div>
+
+      
+        <p class="article-more-link">
+          <a href="/2020/05/19/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%89%EF%BC%89/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-大数据学习之Spark源码分析（二）" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-date">
+      <time datetime="2020-05-18T10:43:04.000Z" itemprop="datePublished">2020-05-18</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/">大数据学习之Spark源码分析（二）</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+              <h1 id="Spark源码分析任务划分"><a href="#Spark源码分析任务划分" class="headerlink" title="Spark源码分析任务划分"></a>Spark源码分析任务划分</h1><p>​    Spark在提交作业运行的时候会先构建RDD的DAG，DAGScheduler会把DAG拆分成一个一个Stage,提交每个Stage。TaskScheduler会去通过Cluster Manager提交task任务，然后交个work或者Container 去执行task任务，我们看下图：<br><img src="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/Spark%E6%80%BB%E4%BD%93%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B.jpg" alt="Spark总体执行流程"></p>
+          
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark/" rel="tag">Spark</a></li></ul>
+    </div>
+
+      
+        <p class="article-more-link">
+          <a href="/2020/05/18/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BSpark%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
     <article id="post-大数据学习之Spark源码分析(一)" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
@@ -854,135 +983,6 @@
       
         <p class="article-more-link">
           <a href="/2018/04/13/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%B0%83%E8%AF%95Hive%E6%BA%90%E7%A0%81/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-
-
-  
-    <article id="post-大数据学习之StorageFormat" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/" class="article-date">
-      <time datetime="2018-04-08T07:43:24.000Z" itemprop="datePublished">2018-04-08</time>
-</a>
-
-
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/">大数据学习之StorageFormat</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-          
-              <p>​    Apache Hive支持Apache Hadoop中使用的几种熟悉的文件格式，比如<strong>TextFile，RCFile，SequenceFile，AVRO，ORC和Parquet</strong>格式。在创建Hive表的时候可以使用<strong>STOREA AS</strong> 创建，如官网示例</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"> [STORED AS file_format]<span class="comment">-- (这里指定你要创建的格式是什么)</span></span><br><span class="line">   | STORED BY 'storage.handler.class.name<span class="string">' [WITH SERDEPROPERTIES (...)]  </span></span><br><span class="line"><span class="string">]</span></span><br><span class="line"><span class="string">--示例</span></span><br><span class="line"><span class="string"> file_format:</span></span><br><span class="line"><span class="string">: SEQUENCEFILE</span></span><br><span class="line"><span class="string">| TEXTFILE    -- (Default, 这是hive默认的格式)</span></span><br><span class="line"><span class="string">| RCFILE      -- (Note: Available in Hive 0.6.0 and later)</span></span><br><span class="line"><span class="string">| ORC         -- (Note: Available in Hive 0.11.0 and later)</span></span><br><span class="line"><span class="string">| PARQUET     -- (Note: Available in Hive 0.13.0 and later)</span></span><br><span class="line"><span class="string">| AVRO        -- (Note: Available in Hive 0.14.0 and later)</span></span><br><span class="line"><span class="string">| JSONFILE    -- (Note: Available in Hive 4.0.0 and later)</span></span><br><span class="line"><span class="string"> --input_format_classname 是可以使用自定义的类，output_format_classname 也是同理</span></span><br><span class="line"><span class="string"> --比如create table student（id int,name, string ,age int）STORED AS INPUTFORMAT '</span>org.apache.hadoop.mappred.TextInputFormat<span class="string">' OUTPUTFORMAT '</span>org.apache.hadoop.mappred.TextInputFormat<span class="string">'</span></span><br><span class="line"><span class="string">| INPUTFORMAT input_format_classname OUTPUTFORMAT output_format_classname</span></span><br></pre></td></tr></table></figure>
-          
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-
-      
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive/" rel="tag">Hive</a></li></ul>
-    </div>
-
-      
-        <p class="article-more-link">
-          <a href="/2018/04/08/%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%A6%E4%B9%A0%E4%B9%8BStorageFormat/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-
-
-  
-    <article id="post-hive中的UDF使用" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/" class="article-date">
-      <time datetime="2018-04-07T05:35:23.000Z" itemprop="datePublished">2018-04-07</time>
-</a>
-
-
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/">Hive中的UDF使用</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-          
-              <h2 id="Hive中UDF的使用"><a href="#Hive中UDF的使用" class="headerlink" title="Hive中UDF的使用"></a>Hive中UDF的使用</h2><h4 id="1、什么是UDF"><a href="#1、什么是UDF" class="headerlink" title="1、什么是UDF?"></a>1、什么是UDF?</h4><p>​        在<strong>hive</strong>中，<strong>hive</strong>给我提供了许多内置的函数，但是出于某些需求的原因，内置的函数无法帮助我们实现业务需求。这时候<strong>hive</strong>中就引入了自定义函数<strong>UDF（User-Defined-Function）</strong></p>
-          
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-
-      
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
-    </div>
-
-      
-        <p class="article-more-link">
-          <a href="/2018/04/07/hive%E4%B8%AD%E7%9A%84UDF%E4%BD%BF%E7%94%A8/#more">more >></a>
         </p>
       
       <div class="clearfix"></div>
